@@ -1,17 +1,42 @@
 package net.mmhan.popularmovies;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.mmhan.popularmovies.model.MovieService;
+import net.mmhan.popularmovies.model.MoviesResult;
 
-public class MainActivity extends ActionBarActivity {
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
+
+public class MainActivity extends AppCompatActivity {
+
+    public final String LOG_TAG = this.getClass().getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        MovieService.Implementation
+                .get(getString(R.string.api_key))
+                .popular(new Callback<MoviesResult>() {
+                    @Override
+                    public void success(MoviesResult moviesResult, Response response) {
+                        for(MoviesResult.Movie m : moviesResult.getMovies()){
+                            Log.e(LOG_TAG, "Movie: " + m.title);
+                        }
+                    }
+                    @Override
+                    public void failure(RetrofitError error) {
+
+                    }
+                });
     }
 
     @Override
