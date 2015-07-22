@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
@@ -132,9 +131,10 @@ public class MainActivity extends AppCompatActivity {
             //IMAGE
             Glide.with(holder.mImageView.getContext())
                     .load(mData.get(position).getPosterUrl())
-//                    .error(R.drawable.placeholder) TODO
-//                    .placeholder(R.drawable.placeholder) TODO
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .error(R.drawable.cloud_err)
+                    .centerCrop()
+                    .placeholder(R.drawable.cloud_placeholder)
+                    .crossFade()
                     .into(holder.mImageView);
         }
 
