@@ -4,13 +4,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -38,37 +41,82 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.LayoutManager mLayoutManager;
 
     ArrayList<MoviesResult.Movie> mMovies;
+    private Toolbar mActionBarToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        setUpToolbarSpinner();
 
         mMovies = new ArrayList<>();
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new GridLayoutManager(this, 2);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new MovieThumbnailAdapter(mMovies);
-        mRecyclerView.setAdapter(mAdapter);
 
+        setUpRecyclerView();
 
+        getData();
+    }
+
+    private void setUpToolbarSpinner() {
+        Toolbar toolbar = getActionBarToolbar();
+        if (toolbar == null) {
+            Log.e(LOG_TAG, "Not configuring action bar");
+            return;
+        }
+        Log.e(LOG_TAG, "Setting up spinner");
+        ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
+        spinnerAdapter.addItems(getToolbarItems());
+
+        Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+        spinner.setAdapter(spinnerAdapter);
+    }
+
+    private Toolbar getActionBarToolbar() {
+        //referenced from https://github.com/google/iosched/blob/master/android/src/main/java/com/google/samples/apps/iosched/ui/BaseActivity.java
+        if (mActionBarToolbar == null) {
+            mActionBarToolbar = (Toolbar) findViewById(R.id.toolbar_actionbar);
+            if (mActionBarToolbar != null) {
+                setSupportActionBar(mActionBarToolbar);
+            }else{
+                Log.e(LOG_TAG, "No toolbar");
+            }
+        }
+        return mActionBarToolbar;
+    }
+
+    private List<String> getToolbarItems(){
+        List<String> items = new ArrayList<>();
+        items.add("Most Popular");
+        items.add("Highest Rated");
+        return items;
+    }
+
+    private void getData() {
         MovieService.Implementation
                 .get(getString(R.string.api_key))
                 .popular(new Callback<MoviesResult>() {
                     @Override
                     public void success(MoviesResult moviesResult, Response response) {
-                        for(MoviesResult.Movie m : moviesResult.getMovies()){
+                        for (MoviesResult.Movie m : moviesResult.getMovies()) {
                             mMovies.add(m);
                             mAdapter.notifyDataSetChanged();
                             Log.e(LOG_TAG, "Movie: " + m.title);
                         }
                     }
+
                     @Override
                     public void failure(RetrofitError error) {
                         Log.e(LOG_TAG, error.toString());
                     }
                 });
+    }
+
+    private void setUpRecyclerView() {
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new GridLayoutManager(this, 2);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mAdapter = new MovieThumbnailAdapter(mMovies);
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     @Override
@@ -142,5 +190,61 @@ public class MainActivity extends AppCompatActivity {
         public int getItemCount() {
             return mData.size();
         }
+    }
+
+    /**
+     * Referenced from https://blog.danielbetts.net/2015/01/02/material-design-spinner-toolbar-style-fix/
+     */
+    class ToolbarSpinnerAdapter extends BaseAdapter {
+
+        List<String> mItems = new ArrayList<>();
+
+        public void addItems(List<String> items){
+            mItems.addAll(items);
+        }
+
+        @Override
+        public int getCount() {
+            return mItems.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return mItems.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        public String getTitle(int i){
+            return i >= 0 && i <= getCount() ? mItems.get(i) : "";
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            if (view == null || !view.getTag().toString().equals("NON_DROPDOWN")) {
+                view = getLayoutInflater().inflate(R.layout.toolbar_spinner_item_actionbar, viewGroup, false);
+                view.setTag("NON_DROPDOWN");
+            }
+            TextView textView = (TextView) view.findViewById(android.R.id.text1);
+            textView.setText(getTitle(i));
+            return view;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null || !convertView.getTag().toString().equals("DROPDOWN")) {
+                convertView = getLayoutInflater().inflate(R.layout.toolbar_spinner_item_dropdown, parent, false);
+                convertView.setTag("DROPDOWN");
+            }
+
+            TextView textView = (TextView) convertView.findViewById(android.R.id.text1);
+            textView.setText(getTitle(position));
+
+            return convertView;
+        }
+
     }
 }
