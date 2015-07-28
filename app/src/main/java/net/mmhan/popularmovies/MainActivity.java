@@ -33,7 +33,8 @@ import retrofit.client.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    public final String LOG_TAG = this.getClass().getName();
+    private static final int GRIDVIEW_COLUMN_COUNT = 3;
+    private final String LOG_TAG = this.getClass().getName();
 
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
@@ -81,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(LOG_TAG, "No toolbar");
             }
         }
+        if(getSupportActionBar() != null){
+           getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
         return mActionBarToolbar;
     }
 
@@ -113,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpRecyclerView() {
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new GridLayoutManager(this, 2);
+        mLayoutManager = new GridLayoutManager(this, GRIDVIEW_COLUMN_COUNT);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
@@ -179,9 +183,10 @@ public class MainActivity extends AppCompatActivity {
             //IMAGE
             Glide.with(holder.mImageView.getContext())
                     .load(mData.get(position).getPosterUrl())
-                    .error(R.drawable.cloud_err)
                     .centerCrop()
-                    .placeholder(R.drawable.cloud_placeholder)
+                    // TODO: Find a way to add those back in without ruining how the posters look
+//                    .error(R.drawable.cloud_err)
+//                    .placeholder(R.drawable.cloud_placeholder)
                     .crossFade()
                     .into(holder.mImageView);
         }
