@@ -24,7 +24,7 @@ public class MoviesResult {
         public Float vote_average;
         public String release_date;
 
-        final String POSTER_SIZE = "w185";
+        final String POSTER_SIZE = "w342";
         final String BASE_URL = "http://image.tmdb.org/t/p/";
 
         public String getPosterUrl(){

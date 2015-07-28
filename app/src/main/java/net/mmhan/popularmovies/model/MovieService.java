@@ -12,17 +12,21 @@ import retrofit.http.Query;
 public interface MovieService {
 
     public static String END_POINT = "http://api.themoviedb.org/3/";
+    String EP_POPULAR = "/discover/movie?sort_by=popularity.desc";
+    String EP_HIGHEST_RATED = "/discover/movie?sort_by=vote_average.desc&vote_count.gte=1000";
 
-    @GET("/movie/top_rated")
+    @GET(EP_HIGHEST_RATED)
     void topRated(Callback<MoviesResult> callback);
 
-    @GET("/movie/top_rated")
+    @GET(EP_HIGHEST_RATED)
     void topRated(@Query("page") int page, Callback<MoviesResult> callback);
 
-    @GET("/movie/popular")
+    @GET(EP_POPULAR)
     void popular(Callback<MoviesResult> callback);
-    @GET("/movie/popular")
+    @GET(EP_POPULAR)
     void popular(@Query("page") int page, Callback<MoviesResult> callback);
+
+
 
     public static class Implementation {
         public static MovieService get(final String api_key) {
