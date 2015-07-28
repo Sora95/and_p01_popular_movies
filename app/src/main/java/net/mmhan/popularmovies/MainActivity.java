@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -35,6 +36,17 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int GRIDVIEW_COLUMN_COUNT = 3;
     private final String LOG_TAG = this.getClass().getName();
+
+    private enum Filter{
+        MostPopular,
+        HighestRated
+    }
+
+    public void setFilter(Filter mFilter) {
+        this.mFilter = mFilter;
+    }
+
+    Filter mFilter = Filter.MostPopular;
 
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
@@ -65,11 +77,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         Log.e(LOG_TAG, "Setting up spinner");
-        ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
+        final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
         spinnerAdapter.addItems(getToolbarItems());
 
         Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
         spinner.setAdapter(spinnerAdapter);
+
+        spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
     }
 
     private Toolbar getActionBarToolbar() {
@@ -88,32 +102,47 @@ public class MainActivity extends AppCompatActivity {
         return mActionBarToolbar;
     }
 
-    private List<String> getToolbarItems(){
-        List<String> items = new ArrayList<>();
-        items.add("Most Popular");
-        items.add("Highest Rated");
+    private List<FilterItem> getToolbarItems(){
+        List<FilterItem> items = new ArrayList<>();
+        items.add(new FilterItem("Most Popular", Filter.MostPopular));
+        items.add(new FilterItem("Highest Rated", Filter.HighestRated));
         return items;
     }
 
-    private void getData() {
-        MovieService.Implementation
-                .get(getString(R.string.api_key))
-                .popular(new Callback<MoviesResult>() {
-                    @Override
-                    public void success(MoviesResult moviesResult, Response response) {
-                        for (MoviesResult.Movie m : moviesResult.getMovies()) {
-                            mMovies.add(m);
-                            mAdapter.notifyDataSetChanged();
-                            Log.e(LOG_TAG, "Movie: " + m.title);
-                        }
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-                        Log.e(LOG_TAG, error.toString());
-                    }
-                });
+    private void resetData(){
+        mMovies.clear();
+        mAdapter.notifyDataSetChanged();
     }
+
+    private void getData() {
+        MovieService service = MovieService.Implementation
+                .get(getString(R.string.api_key));
+        Callback<MoviesResult> cb = new Callback<MoviesResult>() {
+            @Override
+            public void success(MoviesResult moviesResult, Response response) {
+                for (MoviesResult.Movie m : moviesResult.getMovies()) {
+                    mMovies.add(m);
+                    mAdapter.notifyDataSetChanged();
+                    Log.e(LOG_TAG, "Movie: " + m.title);
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(LOG_TAG, error.toString());
+            }
+        };
+        switch (mFilter){
+            case MostPopular:
+                service.popular(cb);
+                break;
+            case HighestRated:
+                service.topRated(cb);
+                break;
+        }
+
+    }
+
 
     private void setUpRecyclerView() {
         mRecyclerView.setHasFixedSize(true);
@@ -145,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
+    private class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
 
         List<MoviesResult.Movie> mData;
 
@@ -200,11 +229,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Referenced from https://blog.danielbetts.net/2015/01/02/material-design-spinner-toolbar-style-fix/
      */
-    class ToolbarSpinnerAdapter extends BaseAdapter {
+    private class ToolbarSpinnerAdapter extends BaseAdapter {
 
-        List<String> mItems = new ArrayList<>();
+        List<FilterItem> mItems = new ArrayList<>();
 
-        public void addItems(List<String> items){
+        public void addItems(List<FilterItem> items){
             mItems.addAll(items);
         }
 
@@ -214,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public Object getItem(int i) {
+        public FilterItem getItem(int i) {
             return mItems.get(i);
         }
 
@@ -224,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public String getTitle(int i){
-            return i >= 0 && i <= getCount() ? mItems.get(i) : "";
+            return i >= 0 && i <= getCount() ? mItems.get(i).getName() : "";
         }
 
         @Override
@@ -251,5 +280,44 @@ public class MainActivity extends AppCompatActivity {
             return convertView;
         }
 
+    }
+
+    private class FilterItem {
+
+        public String name;
+        public Filter filter;
+
+        public FilterItem(String name, Filter filter){
+            this.name = name;
+            this.filter = filter;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Filter getFilter() {
+            return filter;
+        }
+    }
+
+    private class SpinnerItemSelectedListener implements AdapterView.OnItemSelectedListener {
+        private final ToolbarSpinnerAdapter spinnerAdapter;
+
+        public SpinnerItemSelectedListener(ToolbarSpinnerAdapter spinnerAdapter) {
+            this.spinnerAdapter = spinnerAdapter;
+        }
+
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            MainActivity.this.setFilter(spinnerAdapter.getItem(i).getFilter());
+            resetData();
+            getData();
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+            return;
+        }
     }
 }
