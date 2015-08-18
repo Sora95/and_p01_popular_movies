@@ -1,5 +1,6 @@
 package net.mmhan.popularmovies;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -174,21 +175,46 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
+    class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
 
         List<MoviesResult.Movie> mData;
 
-        class MovieThumbnailViewHolder extends RecyclerView.ViewHolder{
+        class MovieThumbnailViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
             @Bind(R.id.tv_title)
             public TextView mTextView;
             @Bind(R.id.iv_thumbnail)
             public ImageView mImageView;
 
+
+            private MoviesResult.Movie mMovie;
+
             public MovieThumbnailViewHolder(View v) {
                 super(v);
                 ButterKnife.bind(this, v);
                 mTextView.getText();
+                v.setOnClickListener(this);
+            }
+
+            public void setmMovie(MoviesResult.Movie mMovie) {
+                this.mMovie = mMovie;
+                mTextView.setText(mMovie.title);
+                //IMAGE
+                Glide.with(mImageView.getContext())
+                        .load(mMovie.getPosterUrl())
+                        .centerCrop()
+                                // TODO: Find a way to add those back in without ruining how the posters look
+//                    .error(R.drawable.cloud_err)
+//                    .placeholder(R.drawable.cloud_placeholder)
+                        .crossFade()
+                        .into(mImageView);
+            }
+
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(MainActivity.this, MovieDetailsActivity.class);
+                it.putExtra(MovieDetailsActivity.EXTRA_MOVIE, mMovie);
+                startActivity(it);
             }
         }
 
@@ -208,16 +234,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(MovieThumbnailViewHolder holder, int position) {
-            holder.mTextView.setText(mData.get(position).title);
-            //IMAGE
-            Glide.with(holder.mImageView.getContext())
-                    .load(mData.get(position).getPosterUrl())
-                    .centerCrop()
-                    // TODO: Find a way to add those back in without ruining how the posters look
-//                    .error(R.drawable.cloud_err)
-//                    .placeholder(R.drawable.cloud_placeholder)
-                    .crossFade()
-                    .into(holder.mImageView);
+            holder.setmMovie(mData.get(position));
+
         }
 
         @Override
