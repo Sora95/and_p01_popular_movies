@@ -7,10 +7,7 @@ import java.util.List;
  * Created by mmhan on 21/7/15.
  */
 public class MoviesResult {
-    String page;
     List<Movie> results;
-    int totalPages;
-    int totalResults;
 
     public List<Movie> getMovies(){
         return results;
