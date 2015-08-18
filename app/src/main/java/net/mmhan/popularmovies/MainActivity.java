@@ -2,6 +2,7 @@ package net.mmhan.popularmovies;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -40,15 +41,40 @@ public class MainActivity extends AppCompatActivity {
     private final String LOG_TAG = this.getClass().getName();
 
     private enum Filter{
-        MostPopular,
-        HighestRated
+        Popularity,
+        Rating
     }
+
+
+    Filter mFilter = Filter.Popularity;
+
+    private enum SortOrder{
+        Descending,
+        Ascending
+    }
+
+    SortOrder mOrder = SortOrder.Descending;
 
     public void setFilter(Filter mFilter) {
         this.mFilter = mFilter;
     }
 
-    Filter mFilter = Filter.MostPopular;
+    public void setOrder(SortOrder mOrder) {
+        this.mOrder = mOrder;
+    }
+
+    public int getSortOrderIcon(){
+        if(mOrder == SortOrder.Ascending){
+            return R.drawable.ic_trending_up_black_24dp;
+        }else{
+            return R.drawable.ic_trending_down_black_24dp;
+        }
+    }
+
+    public void swapOrder(){
+        setOrder((mOrder == SortOrder.Descending) ? SortOrder.Ascending : SortOrder.Descending);
+        Log.e(LOG_TAG, "SortOrder changed to " + mOrder);
+    }
 
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
@@ -106,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<FilterItem> getToolbarItems(){
         List<FilterItem> items = new ArrayList<>();
-        items.add(new FilterItem("Most Popular", Filter.MostPopular));
-        items.add(new FilterItem("Highest Rated", Filter.HighestRated));
+        items.add(new FilterItem(Filter.Popularity, mOrder));
+        items.add(new FilterItem(Filter.Rating, mOrder));
         return items;
     }
 
@@ -137,14 +163,29 @@ public class MainActivity extends AppCompatActivity {
 //                Log.e(LOG_TAG, error.toString());
             }
         };
-        switch (mFilter){
-            case MostPopular:
-                service.popular(page, cb);
+        switch (mOrder){
+            case Descending:
+                switch (mFilter){
+                    case Popularity:
+                        service.popular(page, cb);
+                        break;
+                    case Rating:
+                        service.highestRated(page, cb);
+                        break;
+                }
                 break;
-            case HighestRated:
-                service.topRated(page, cb);
+            case Ascending:
+                switch (mFilter){
+                    case Popularity:
+                        service.unpopular(page, cb);
+                        break;
+                    case Rating:
+                        service.lowestRated(page, cb);
+                        break;
+                }
                 break;
         }
+
     }
 
 
@@ -167,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -178,7 +220,11 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_sort_order) {
+            swapOrder();
+            item.setIcon(ContextCompat.getDrawable(this, getSortOrderIcon()));
+            mToolbarSetupCompleted = false;
+            setUpToolbarSpinner();
             return true;
         }
 
@@ -312,16 +358,22 @@ public class MainActivity extends AppCompatActivity {
 
     private class FilterItem {
 
-        public String name;
-        public Filter filter;
+        private Filter filter;
+        private SortOrder order;
 
-        public FilterItem(String name, Filter filter){
-            this.name = name;
+        public FilterItem(Filter filter, SortOrder order){
             this.filter = filter;
+            this.order = order;
         }
 
         public String getName() {
-            return name;
+            int string_id = R.string.filter_highest_rated;
+            if(Filter.Rating == filter)
+                string_id = SortOrder.Descending == order ? R.string.filter_highest_rated : R.string.filter_lowest_rated;
+            else if(Filter.Popularity == filter)
+                string_id = SortOrder.Descending == order ? R.string.filter_popular : R.string.filter_unpopular;
+
+            return getString(string_id);
         }
 
         public Filter getFilter() {
