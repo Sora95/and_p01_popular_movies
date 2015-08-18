@@ -22,6 +22,7 @@ import com.bumptech.glide.Glide;
 
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
+import net.mmhan.popularmovies.ui.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +53,11 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
     RecyclerView.Adapter mAdapter;
-    RecyclerView.LayoutManager mLayoutManager;
+    GridLayoutManager mLayoutManager;
+    private Toolbar mActionBarToolbar;
+    private boolean mToolbarSetupCompleted = false;
 
     ArrayList<MoviesResult.Movie> mMovies;
-    private Toolbar mActionBarToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +70,24 @@ public class MainActivity extends AppCompatActivity {
 
         setUpRecyclerView();
 
-        getData();
     }
 
     private void setUpToolbarSpinner() {
         Toolbar toolbar = getActionBarToolbar();
         if (toolbar == null) {
-            Log.e(LOG_TAG, "Not configuring action bar");
+//            Log.e(LOG_TAG, "Not configuring action bar");
             return;
         }
-        Log.e(LOG_TAG, "Setting up spinner");
-        final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
-        spinnerAdapter.addItems(getToolbarItems());
+        if(!mToolbarSetupCompleted) {
+//            Log.e(LOG_TAG, "Setting up spinner");
+            final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
+            spinnerAdapter.addItems(getToolbarItems());
 
-        Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
-        spinner.setAdapter(spinnerAdapter);
+            Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+            spinner.setAdapter(spinnerAdapter);
 
-        spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
+            spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
+        }
     }
 
     private Toolbar getActionBarToolbar() {
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             if (mActionBarToolbar != null) {
                 setSupportActionBar(mActionBarToolbar);
             }else{
-                Log.e(LOG_TAG, "No toolbar");
+//                Log.e(LOG_TAG, "No toolbar");
             }
         }
         if(getSupportActionBar() != null){
@@ -116,6 +119,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getData() {
+        getData(1);
+    }
+    private void getData(int page) {
         MovieService service = MovieService.Implementation
                 .get(getString(R.string.api_key));
         Callback<MoviesResult> cb = new Callback<MoviesResult>() {
@@ -123,25 +129,24 @@ public class MainActivity extends AppCompatActivity {
             public void success(MoviesResult moviesResult, Response response) {
                 for (MoviesResult.Movie m : moviesResult.getMovies()) {
                     mMovies.add(m);
-                    mAdapter.notifyDataSetChanged();
-                    Log.e(LOG_TAG, "Movie: " + m.title);
+//                    Log.e(LOG_TAG, "Movie: " + m.title);
                 }
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void failure(RetrofitError error) {
-                Log.e(LOG_TAG, error.toString());
+//                Log.e(LOG_TAG, error.toString());
             }
         };
         switch (mFilter){
             case MostPopular:
-                service.popular(cb);
+                service.popular(page, cb);
                 break;
             case HighestRated:
-                service.topRated(cb);
+                service.topRated(page, cb);
                 break;
         }
-
     }
 
 
@@ -151,6 +156,13 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(mLayoutManager) {
+            @Override
+            public void onLoadMore(int current_page) {
+                Log.e(LOG_TAG, "onLoadMore Called");
+                MainActivity.this.getData(current_page);
+            }
+        });
     }
 
     @Override
