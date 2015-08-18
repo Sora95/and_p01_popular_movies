@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.Adapter mAdapter;
     GridLayoutManager mLayoutManager;
     private Toolbar mActionBarToolbar;
+    private boolean mToolbarSetupCompleted = false;
 
     ArrayList<MoviesResult.Movie> mMovies;
 
@@ -74,17 +75,19 @@ public class MainActivity extends AppCompatActivity {
     private void setUpToolbarSpinner() {
         Toolbar toolbar = getActionBarToolbar();
         if (toolbar == null) {
-            Log.e(LOG_TAG, "Not configuring action bar");
+//            Log.e(LOG_TAG, "Not configuring action bar");
             return;
         }
-        Log.e(LOG_TAG, "Setting up spinner");
-        final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
-        spinnerAdapter.addItems(getToolbarItems());
+        if(!mToolbarSetupCompleted) {
+//            Log.e(LOG_TAG, "Setting up spinner");
+            final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
+            spinnerAdapter.addItems(getToolbarItems());
 
-        Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
-        spinner.setAdapter(spinnerAdapter);
+            Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+            spinner.setAdapter(spinnerAdapter);
 
-        spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
+            spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
+        }
     }
 
     private Toolbar getActionBarToolbar() {
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             if (mActionBarToolbar != null) {
                 setSupportActionBar(mActionBarToolbar);
             }else{
-                Log.e(LOG_TAG, "No toolbar");
+//                Log.e(LOG_TAG, "No toolbar");
             }
         }
         if(getSupportActionBar() != null){
@@ -126,14 +129,14 @@ public class MainActivity extends AppCompatActivity {
             public void success(MoviesResult moviesResult, Response response) {
                 for (MoviesResult.Movie m : moviesResult.getMovies()) {
                     mMovies.add(m);
-                    Log.e(LOG_TAG, "Movie: " + m.title);
+//                    Log.e(LOG_TAG, "Movie: " + m.title);
                 }
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void failure(RetrofitError error) {
-                Log.e(LOG_TAG, error.toString());
+//                Log.e(LOG_TAG, error.toString());
             }
         };
         switch (mFilter){

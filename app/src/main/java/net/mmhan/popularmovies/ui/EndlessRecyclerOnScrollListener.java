@@ -3,9 +3,11 @@ package net.mmhan.popularmovies.ui;
 /**
  * Created by mmhan on 18/8/15.
  * referenced from https://gist.github.com/ssinss/e06f12ef66c51252563e
+ * TODO: Threshold calculation seems off. It's loading even before it's needed.
  */
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScrollListener {
     public static String TAG = EndlessRecyclerOnScrollListener.class.getSimpleName();
@@ -33,6 +35,7 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
 
         if (loading) {
             if (totalItemCount > previousTotal) {
+                Log.e(TAG, "Loaded");
                 loading = false;
                 previousTotal = totalItemCount;
             }
@@ -42,6 +45,7 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
             // End has been reached
 
             // Do something
+            Log.e(TAG, "Loading more");
             current_page++;
 
             onLoadMore(current_page);
