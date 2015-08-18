@@ -96,8 +96,6 @@ public class MainActivity extends AppCompatActivity {
             mActionBarToolbar = (Toolbar) findViewById(R.id.toolbar_actionbar);
             if (mActionBarToolbar != null) {
                 setSupportActionBar(mActionBarToolbar);
-            }else{
-//                Log.e(LOG_TAG, "No toolbar");
             }
         }
         if(getSupportActionBar() != null){
@@ -340,14 +338,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-            MainActivity.this.setFilter(spinnerAdapter.getItem(i).getFilter());
+            setFilter(spinnerAdapter.getItem(i).getFilter());
             resetData();
             getData();
         }
 
         @Override
-        public void onNothingSelected(AdapterView<?> adapterView) {
-            return;
-        }
+        public void onNothingSelected(AdapterView<?> adapterView) {}
     }
 }

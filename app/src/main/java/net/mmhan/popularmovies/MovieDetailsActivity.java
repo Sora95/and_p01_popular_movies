@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -36,6 +35,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
     Toolbar toolbar;
     @Bind(R.id.iv_poster)
     ImageView iv_poster;
+    @Bind(R.id.tv_title)
+    TextView tv_title;
     @Bind(R.id.tv_release_date)
     TextView tv_releaseDate;
     @Bind(R.id.tv_voteAvg)
@@ -51,7 +52,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         mMovie = (MoviesResult.Movie) getIntent().getSerializableExtra(EXTRA_MOVIE);
-        Toast.makeText(this, mMovie.title, Toast.LENGTH_SHORT).show();
 
         ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
         supportPostponeEnterTransition();
@@ -77,6 +77,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 .crossFade()
                 .into(iv_poster);
 
+        tv_title.setText(mMovie.title);
         tv_releaseDate.setText(mMovie.release_date);
         tv_voteAvg.setText(mMovie.vote_average.toString());
         tv_sypnosis.setText(mMovie.overview);
