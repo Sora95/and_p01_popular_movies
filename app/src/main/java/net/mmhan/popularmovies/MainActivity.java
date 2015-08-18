@@ -22,6 +22,7 @@ import com.bumptech.glide.Glide;
 
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
+import net.mmhan.popularmovies.ui.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +53,10 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
     RecyclerView.Adapter mAdapter;
-    RecyclerView.LayoutManager mLayoutManager;
+    GridLayoutManager mLayoutManager;
+    private Toolbar mActionBarToolbar;
 
     ArrayList<MoviesResult.Movie> mMovies;
-    private Toolbar mActionBarToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         setUpRecyclerView();
 
-        getData();
     }
 
     private void setUpToolbarSpinner() {
@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getData() {
+        getData(1);
+    }
+    private void getData(int page) {
         MovieService service = MovieService.Implementation
                 .get(getString(R.string.api_key));
         Callback<MoviesResult> cb = new Callback<MoviesResult>() {
@@ -123,9 +126,9 @@ public class MainActivity extends AppCompatActivity {
             public void success(MoviesResult moviesResult, Response response) {
                 for (MoviesResult.Movie m : moviesResult.getMovies()) {
                     mMovies.add(m);
-                    mAdapter.notifyDataSetChanged();
                     Log.e(LOG_TAG, "Movie: " + m.title);
                 }
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -135,13 +138,12 @@ public class MainActivity extends AppCompatActivity {
         };
         switch (mFilter){
             case MostPopular:
-                service.popular(cb);
+                service.popular(page, cb);
                 break;
             case HighestRated:
-                service.topRated(cb);
+                service.topRated(page, cb);
                 break;
         }
-
     }
 
 
@@ -151,6 +153,13 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(mLayoutManager) {
+            @Override
+            public void onLoadMore(int current_page) {
+                Log.e(LOG_TAG, "onLoadMore Called");
+                MainActivity.this.getData(current_page);
+            }
+        });
     }
 
     @Override
