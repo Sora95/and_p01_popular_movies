@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    >
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        >
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10dp"
+            >
+
+         <ImageView
+            android:layout_width="180dp"
+            android:layout_height="240dp"
+            android:id="@+id/iv_poster"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp" />
+
+        <TextView
+            android:text="@string/lbl_release_date"
+            android:id="@+id/lbl_release_date"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/iv_poster"
+            android:layout_toEndOf="@+id/iv_poster"
+            style="@style/lbl_movie_details" />
+
+        <TextView
+            android:text="@string/hello_world"
+            android:id="@+id/tv_release_date"
+            android:layout_below="@+id/lbl_release_date"
+            android:layout_alignLeft="@+id/lbl_release_date"
+            android:layout_alignStart="@+id/lbl_release_date"
+            style="@style/tv_movie_details" />
+
+        <TextView
+            android:text="@string/lbl_avg_vote"
+            android:id="@+id/lbl_avg_vote"
+            android:layout_below="@+id/tv_release_date"
+            android:layout_toRightOf="@+id/iv_poster"
+            android:layout_toEndOf="@+id/iv_poster"
+            style="@style/lbl_movie_details" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="4"
+            android:id="@+id/tv_voteAvg"
+            android:layout_below="@+id/lbl_avg_vote"
+            android:layout_alignLeft="@+id/lbl_avg_vote"
+            android:layout_alignStart="@+id/lbl_avg_vote" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="/ 10"
+            android:id="@+id/textView2"
+            android:layout_alignBottom="@+id/tv_voteAvg"
+            android:layout_toRightOf="@+id/tv_voteAvg"
+            android:layout_toEndOf="@+id/tv_voteAvg"
+            android:layout_marginLeft="5dp" />
+
+
+        </RelativeLayout>
+
+
+
+    </android.support.v7.widget.CardView>
+
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:minHeight="400dp"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_marginBottom="15dp"
+                android:id="@+id/tv_title"
+                android:text="@string/lbl_sypnosis"
+                />
+            <TextView
+                android:text="@string/lbl_sypnosis"
+                android:id="@+id/lbl_sypnosis"
+                android:layout_marginLeft="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_below="@id/tv_title"
+                style="@style/lbl_movie_details" />
+
+            <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lbl_sypnosis"
+            android:text="@string/lorem"
+            android:id="@+id/tv_sypnosis"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:layout_marginTop="10dp" />
+
+        </RelativeLayout>
+
+
+    </android.support.v7.widget.CardView>
+
+
+
+
+</LinearLayout>
