@@ -72,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
     public int getSortOrderIcon(){
         //TODO replace two images with one by programmatically reflecting the drawable
         if(mOrder == SortOrder.Ascending){
-            return R.drawable.ic_sort_black_24dp;
+            return R.drawable.ic_action_sort_r;
         }else{
-            return R.drawable.ic_sort_rblack_24dp;
+            return R.drawable.ic_action_sort;
         }
     }
 

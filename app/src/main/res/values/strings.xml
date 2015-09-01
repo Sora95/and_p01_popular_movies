@@ -26,5 +26,6 @@ Morbi in sem quis dui placerat ornare. Pellentesque odio nisi, euismod in, phare
 
 Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus.
     </string>
-    <string name="reverse_sort">Reverse Sort</string>
+    <string name="reverse_sort">Swap Order</string>
+    <string name="action_favorite">Add to Favorites</string>
 </resources>
