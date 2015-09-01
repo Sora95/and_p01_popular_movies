@@ -8,8 +8,8 @@ android {
         applicationId "net.mmhan.popularmovies"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 20150901
+        versionName "1.1"
     }
     buildTypes {
         release {
