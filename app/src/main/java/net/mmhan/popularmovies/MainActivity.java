@@ -2,6 +2,7 @@ package net.mmhan.popularmovies;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -37,18 +38,50 @@ import retrofit.client.Response;
 public class MainActivity extends AppCompatActivity {
 
     private static final int GRIDVIEW_COLUMN_COUNT = 3;
+    private static final String MOVIES_KEY = "MOVIES";
+    private static final String SORT_ORDER_KEY = "SORT_ORDER";
+    private static final String FILTER_KEY = "FILTER";
+    private static final String PAGE_KEY = "CURRENT_PAGE";
     private final String LOG_TAG = this.getClass().getName();
+    private int mPage = 1;
+    private EndlessRecyclerOnScrollListener mEndlessRecyclerOnScrollListener;
 
     private enum Filter{
-        MostPopular,
-        HighestRated
+        Popularity,
+        Rating
     }
+
+
+    Filter mFilter = Filter.Popularity;
+
+    private enum SortOrder{
+        Descending,
+        Ascending
+    }
+
+    SortOrder mOrder = SortOrder.Descending;
 
     public void setFilter(Filter mFilter) {
         this.mFilter = mFilter;
     }
 
-    Filter mFilter = Filter.MostPopular;
+    public void setOrder(SortOrder mOrder) {
+        this.mOrder = mOrder;
+    }
+
+    public int getSortOrderIcon(){
+        //TODO replace two images with one by programmatically reflecting the drawable
+        if(mOrder == SortOrder.Ascending){
+            return R.drawable.ic_sort_black_24dp;
+        }else{
+            return R.drawable.ic_sort_rblack_24dp;
+        }
+    }
+
+    public void swapOrder(){
+        setOrder((mOrder == SortOrder.Descending) ? SortOrder.Ascending : SortOrder.Descending);
+        Log.e(LOG_TAG, "SortOrder changed to " + mOrder);
+    }
 
     @Bind(R.id.rview_grid)
     RecyclerView mRecyclerView;
@@ -56,21 +89,51 @@ public class MainActivity extends AppCompatActivity {
     GridLayoutManager mLayoutManager;
     private Toolbar mActionBarToolbar;
     private boolean mToolbarSetupCompleted = false;
+    private boolean mSkipResetAndLoad = false;
 
     ArrayList<MoviesResult.Movie> mMovies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            loadData(savedInstanceState);
+        } else {
+            mMovies = new ArrayList<>();
+        }
+
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        setUpToolbarSpinner();
 
-        mMovies = new ArrayList<>();
+        setUpToolbarSpinner();
 
         setUpRecyclerView();
 
     }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        saveData(outState);
+    }
+
+    private void saveData(Bundle outState) {
+        outState.putSerializable(MOVIES_KEY, mMovies);
+        outState.putSerializable(SORT_ORDER_KEY, mOrder);
+        outState.putSerializable(FILTER_KEY, mFilter);
+        outState.putInt(PAGE_KEY, mEndlessRecyclerOnScrollListener.getCurrentPage());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadData(Bundle savedInstanceState) {
+        mMovies = (ArrayList<MoviesResult.Movie>) savedInstanceState.getSerializable(MOVIES_KEY);
+        mFilter = (Filter) savedInstanceState.getSerializable(FILTER_KEY);
+        mOrder = (SortOrder) savedInstanceState.getSerializable(SORT_ORDER_KEY);
+        mPage = savedInstanceState.getInt(PAGE_KEY);
+        mSkipResetAndLoad = true;
+    }
+
 
     private void setUpToolbarSpinner() {
         Toolbar toolbar = getActionBarToolbar();
@@ -106,12 +169,13 @@ public class MainActivity extends AppCompatActivity {
 
     private List<FilterItem> getToolbarItems(){
         List<FilterItem> items = new ArrayList<>();
-        items.add(new FilterItem("Most Popular", Filter.MostPopular));
-        items.add(new FilterItem("Highest Rated", Filter.HighestRated));
+        items.add(new FilterItem(Filter.Popularity, mOrder));
+        items.add(new FilterItem(Filter.Rating, mOrder));
         return items;
     }
 
     private void resetData(){
+        mPage = 1;
         mMovies.clear();
         mAdapter.notifyDataSetChanged();
     }
@@ -137,14 +201,29 @@ public class MainActivity extends AppCompatActivity {
 //                Log.e(LOG_TAG, error.toString());
             }
         };
-        switch (mFilter){
-            case MostPopular:
-                service.popular(page, cb);
+        switch (mOrder){
+            case Descending:
+                switch (mFilter){
+                    case Popularity:
+                        service.popular(page, cb);
+                        break;
+                    case Rating:
+                        service.highestRated(page, cb);
+                        break;
+                }
                 break;
-            case HighestRated:
-                service.topRated(page, cb);
+            case Ascending:
+                switch (mFilter){
+                    case Popularity:
+                        service.unpopular(page, cb);
+                        break;
+                    case Rating:
+                        service.lowestRated(page, cb);
+                        break;
+                }
                 break;
         }
+
     }
 
 
@@ -154,19 +233,21 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(mLayoutManager) {
+        mEndlessRecyclerOnScrollListener = new EndlessRecyclerOnScrollListener(mLayoutManager, mPage) {
             @Override
             public void onLoadMore(int current_page) {
                 Log.e(LOG_TAG, "onLoadMore Called");
                 MainActivity.this.getData(current_page);
             }
-        });
+        };
+        mRecyclerView.addOnScrollListener(mEndlessRecyclerOnScrollListener);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -178,7 +259,11 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_sort_order) {
+            swapOrder();
+            item.setIcon(ContextCompat.getDrawable(this, getSortOrderIcon()));
+            mToolbarSetupCompleted = false;
+            setUpToolbarSpinner();
             return true;
         }
 
@@ -312,16 +397,22 @@ public class MainActivity extends AppCompatActivity {
 
     private class FilterItem {
 
-        public String name;
-        public Filter filter;
+        private Filter filter;
+        private SortOrder order;
 
-        public FilterItem(String name, Filter filter){
-            this.name = name;
+        public FilterItem(Filter filter, SortOrder order){
             this.filter = filter;
+            this.order = order;
         }
 
         public String getName() {
-            return name;
+            int string_id = R.string.filter_highest_rated;
+            if(Filter.Rating == filter)
+                string_id = SortOrder.Descending == order ? R.string.filter_highest_rated : R.string.filter_lowest_rated;
+            else if(Filter.Popularity == filter)
+                string_id = SortOrder.Descending == order ? R.string.filter_popular : R.string.filter_unpopular;
+
+            return getString(string_id);
         }
 
         public Filter getFilter() {
@@ -338,9 +429,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-            setFilter(spinnerAdapter.getItem(i).getFilter());
-            resetData();
-            getData();
+            if(!mSkipResetAndLoad) {
+                setFilter(spinnerAdapter.getItem(i).getFilter());
+                resetData();
+                getData();
+            }else{
+                mSkipResetAndLoad = false;
+            }
         }
 
         @Override

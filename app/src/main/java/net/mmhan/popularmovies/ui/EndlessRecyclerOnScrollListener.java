@@ -19,10 +19,11 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
 
     private int current_page = 1;
 
-    private GridLayoutManager mLinearLayoutManager;
+    private GridLayoutManager mLayoutManager;
 
-    public EndlessRecyclerOnScrollListener(GridLayoutManager linearLayoutManager) {
-        this.mLinearLayoutManager = linearLayoutManager;
+    public EndlessRecyclerOnScrollListener(GridLayoutManager linearLayoutManager, int page) {
+        this.mLayoutManager = linearLayoutManager;
+        this.current_page = page;
     }
 
     @Override
@@ -30,8 +31,8 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
         super.onScrolled(recyclerView, dx, dy);
 
         visibleItemCount = recyclerView.getChildCount();
-        totalItemCount = mLinearLayoutManager.getItemCount();
-        firstVisibleItem = mLinearLayoutManager.findFirstVisibleItemPosition();
+        totalItemCount = mLayoutManager.getItemCount();
+        firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
 
         if (loading) {
             if (totalItemCount > previousTotal) {
@@ -40,14 +41,15 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
                 previousTotal = totalItemCount;
             }
         }
-        if (!loading && (totalItemCount - visibleItemCount)
-                <= (firstVisibleItem + visibleThreshold)) {
+        if (!loading &&
+                (totalItemCount - visibleItemCount) // 20 - 9  = 11
+                <= (firstVisibleItem + visibleThreshold) // 6 + 5 = 11
+                ) {
             // End has been reached
 
             // Do something
-            Log.e(TAG, "Loading more");
             current_page++;
-
+            Log.e(TAG, "Loading more. Page : " + current_page);
             onLoadMore(current_page);
 
             loading = true;
@@ -55,4 +57,6 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
     }
 
     public abstract void onLoadMore(int current_page);
+
+    public int getCurrentPage(){ return current_page; }
 }
