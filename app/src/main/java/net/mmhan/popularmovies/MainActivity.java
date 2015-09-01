@@ -38,7 +38,13 @@ import retrofit.client.Response;
 public class MainActivity extends AppCompatActivity {
 
     private static final int GRIDVIEW_COLUMN_COUNT = 3;
+    private static final String MOVIES_KEY = "MOVIES";
+    private static final String SORT_ORDER_KEY = "SORT_ORDER";
+    private static final String FILTER_KEY = "FILTER";
+    private static final String PAGE_KEY = "CURRENT_PAGE";
     private final String LOG_TAG = this.getClass().getName();
+    private int mPage = 1;
+    private EndlessRecyclerOnScrollListener mEndlessRecyclerOnScrollListener;
 
     private enum Filter{
         Popularity,
@@ -64,10 +70,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public int getSortOrderIcon(){
+        //TODO replace two images with one by programmatically reflecting the drawable
         if(mOrder == SortOrder.Ascending){
-            return R.drawable.ic_trending_up_black_24dp;
+            return R.drawable.ic_sort_black_24dp;
         }else{
-            return R.drawable.ic_trending_down_black_24dp;
+            return R.drawable.ic_sort_rblack_24dp;
         }
     }
 
@@ -82,21 +89,51 @@ public class MainActivity extends AppCompatActivity {
     GridLayoutManager mLayoutManager;
     private Toolbar mActionBarToolbar;
     private boolean mToolbarSetupCompleted = false;
+    private boolean mSkipResetAndLoad = false;
 
     ArrayList<MoviesResult.Movie> mMovies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            loadData(savedInstanceState);
+        } else {
+            mMovies = new ArrayList<>();
+        }
+
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        setUpToolbarSpinner();
 
-        mMovies = new ArrayList<>();
+        setUpToolbarSpinner();
 
         setUpRecyclerView();
 
     }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        saveData(outState);
+    }
+
+    private void saveData(Bundle outState) {
+        outState.putSerializable(MOVIES_KEY, mMovies);
+        outState.putSerializable(SORT_ORDER_KEY, mOrder);
+        outState.putSerializable(FILTER_KEY, mFilter);
+        outState.putInt(PAGE_KEY, mEndlessRecyclerOnScrollListener.getCurrentPage());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadData(Bundle savedInstanceState) {
+        mMovies = (ArrayList<MoviesResult.Movie>) savedInstanceState.getSerializable(MOVIES_KEY);
+        mFilter = (Filter) savedInstanceState.getSerializable(FILTER_KEY);
+        mOrder = (SortOrder) savedInstanceState.getSerializable(SORT_ORDER_KEY);
+        mPage = savedInstanceState.getInt(PAGE_KEY);
+        mSkipResetAndLoad = true;
+    }
+
 
     private void setUpToolbarSpinner() {
         Toolbar toolbar = getActionBarToolbar();
@@ -138,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetData(){
+        mPage = 1;
         mMovies.clear();
         mAdapter.notifyDataSetChanged();
     }
@@ -195,13 +233,14 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(mLayoutManager) {
+        mEndlessRecyclerOnScrollListener = new EndlessRecyclerOnScrollListener(mLayoutManager, mPage) {
             @Override
             public void onLoadMore(int current_page) {
                 Log.e(LOG_TAG, "onLoadMore Called");
                 MainActivity.this.getData(current_page);
             }
-        });
+        };
+        mRecyclerView.addOnScrollListener(mEndlessRecyclerOnScrollListener);
     }
 
     @Override
@@ -390,9 +429,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-            setFilter(spinnerAdapter.getItem(i).getFilter());
-            resetData();
-            getData();
+            if(!mSkipResetAndLoad) {
+                setFilter(spinnerAdapter.getItem(i).getFilter());
+                resetData();
+                getData();
+            }else{
+                mSkipResetAndLoad = false;
+            }
         }
 
         @Override
