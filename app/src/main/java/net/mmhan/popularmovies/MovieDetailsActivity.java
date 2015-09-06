@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import net.mmhan.popularmovies.model.MoviesResult;
+import net.mmhan.popularmovies.model.PersistedMovie;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -47,6 +48,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @Bind(R.id.tv_sypnosis)
     TextView tv_sypnosis;
 
+    boolean mIsFavorited = false;
+
+    Menu mMenu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +67,19 @@ public class MovieDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        checkIsFavorited();
+
+        updateUI();
+    }
+
+    private void checkIsFavorited() {
+        PersistedMovie result = Realm.getInstance(this).where(PersistedMovie.class)
+                .equalTo("id", mMovie.getId())
+                .findFirst();
+        mIsFavorited = result != null;
+    }
+
+    private void updateUI() {
         collapsingToolbarLayout.setTitle(mMovie.title);
         collapsingToolbarLayout.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
 
@@ -85,12 +103,28 @@ public class MovieDetailsActivity extends AppCompatActivity {
         tv_voteAvg.setText(mMovie.vote_average.toString());
         tv_sypnosis.setText(mMovie.overview);
 
+        updateMenuItem();
+    }
+
+    private void updateMenuItem() {
+        if(mMenu == null) return;
+
+        MenuItem item = mMenu.findItem(R.id.action_favorite);
+        if (mIsFavorited) {
+            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
+            item.setTitle(getString(R.string.action_remove_from_favorites));
+        } else {
+            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star_outline));
+            item.setTitle(getString(R.string.action_add_to_favorites));
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_movie_details, menu);
+        mMenu = menu;
+        updateMenuItem();
         return true;
     }
 
@@ -114,14 +148,24 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void addFavorite(MenuItem item) {
-        Log.e(LOG_TAG, "Saving movie #" + mMovie.getId());
         Realm realmObj = Realm.getInstance(this);
         realmObj.beginTransaction();
-        realmObj.copyToRealmOrUpdate(mMovie.getRealmObject());
-        realmObj.commitTransaction();
-        Log.e(LOG_TAG, "Saved movie #" + mMovie.getId());
+        if(mIsFavorited){
+            Log.e(LOG_TAG, "Removing movie #" + mMovie.getId());
+            realmObj.where(PersistedMovie.class)
+                    .equalTo("id", mMovie.getId())
+                    .findFirst()
+                    .removeFromRealm();
+        }else {
+            Log.e(LOG_TAG, "Saving movie #" + mMovie.getId());
+            realmObj.copyToRealmOrUpdate(mMovie.getRealmObject());
+        }
 
-        item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
+        realmObj.commitTransaction();
+        Log.e(LOG_TAG, "Transaction completed with movie #" + mMovie.getId());
+        mIsFavorited = !mIsFavorited;
+
+        updateMenuItem();
     }
 
 }

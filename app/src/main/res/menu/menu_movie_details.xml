@@ -4,7 +4,7 @@
     tools:context="net.mmhan.popularmovies.MovieDetailsActivity">
 
     <item android:id="@+id/action_favorite"
-        android:title="@string/action_favorite"
+        android:title="@string/action_add_to_favorites"
         android:icon="@drawable/ic_action_toggle_star_outline"
         android:orderInCategory="100"
         app:showAsAction="always" />
