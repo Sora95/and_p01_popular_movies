@@ -18,10 +18,16 @@ import com.bumptech.glide.Glide;
 
 import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
+import net.mmhan.popularmovies.model.MovieService;
+import net.mmhan.popularmovies.model.ReviewsResult;
+import net.mmhan.popularmovies.model.TrailersResult;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.Realm;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 
 public class MovieDetailsActivity extends AppCompatActivity {
@@ -73,6 +79,39 @@ public class MovieDetailsActivity extends AppCompatActivity {
         checkIsInFavorite();
 
         updateUI();
+
+        MovieService.Implementation
+                .get(getString(R.string.api_key))
+                .trailers(mMovie.getId(), new Callback<TrailersResult>() {
+                    @Override
+                    public void success(TrailersResult trailersResult, Response response) {
+                        for (TrailersResult.Trailer t : trailersResult.results) {
+                            Log.e(LOG_TAG, "Trailers received");
+                            Log.e(LOG_TAG, t.getSite() + " " + t.getKey() + " " + t.getType());
+                        }
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.e(LOG_TAG, error.toString());
+                    }
+                });
+        MovieService.Implementation
+                .get(getString(R.string.api_key))
+                .reviews(mMovie.getId(), new Callback<ReviewsResult>() {
+                    @Override
+                    public void success(ReviewsResult reviewsResult, Response response) {
+                        for(ReviewsResult.Review r : reviewsResult.results){
+                            Log.e(LOG_TAG, "Reviews received");
+                            Log.e(LOG_TAG, r.getAuthor() + " : " + r.getUrl());
+                        }
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.e(LOG_TAG, error.toString());
+                    }
+                });
     }
 
     private void checkIsInFavorite() {

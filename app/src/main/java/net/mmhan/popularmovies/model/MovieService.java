@@ -4,6 +4,7 @@ import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.http.GET;
+import retrofit.http.Path;
 import retrofit.http.Query;
 
 /**
@@ -16,6 +17,8 @@ public interface MovieService {
     String EP_UNPOPULAR = "/discover/movie?sort_by=popularity.asc";
     String EP_HIGHEST_RATED = "/discover/movie?sort_by=vote_average.desc&vote_count.gte=1000";
     String EP_LOWEST_RATED = "/discover/movie?sort_by=vote_average.asc&vote_count.gte=1000";
+    String EP_TRAILERS = "/movie/{id}/videos";
+    String EP_REVIEWS = "/movie/{id}/reviews";
 
 
     @GET(EP_HIGHEST_RATED)
@@ -28,6 +31,11 @@ public interface MovieService {
     @GET(EP_UNPOPULAR)
     void unpopular(@Query("page") int page, Callback<MoviesResult> callback);
 
+    @GET(EP_TRAILERS)
+    void trailers(@Path("id") int id, Callback<TrailersResult> callback);
+
+    @GET(EP_REVIEWS)
+    void reviews(@Path("id") int id, Callback<ReviewsResult> callback);
 
 
     class Implementation {
