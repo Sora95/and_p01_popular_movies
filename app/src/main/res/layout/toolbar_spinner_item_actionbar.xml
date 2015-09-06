@@ -11,6 +11,7 @@
         android:paddingRight="4dp"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textColor="@color/header_title"
         />
 
 </LinearLayout>

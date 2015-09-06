@@ -21,8 +21,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import net.mmhan.popularmovies.model.Movie;
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
+import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.ui.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmResults;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -48,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     private enum Filter{
         Popularity,
-        Rating
+        Rating,
+        Favorites
     }
 
 
@@ -72,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
     public int getSortOrderIcon(){
         //TODO replace two images with one by programmatically reflecting the drawable
         if(mOrder == SortOrder.Ascending){
-            return R.drawable.ic_sort_black_24dp;
+            return R.drawable.ic_action_sort_r;
         }else{
-            return R.drawable.ic_sort_rblack_24dp;
+            return R.drawable.ic_action_sort;
         }
     }
 
@@ -91,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mToolbarSetupCompleted = false;
     private boolean mSkipResetAndLoad = false;
 
-    ArrayList<MoviesResult.Movie> mMovies;
+    ArrayList<Movie> mMovies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressWarnings("unchecked")
     private void loadData(Bundle savedInstanceState) {
-        mMovies = (ArrayList<MoviesResult.Movie>) savedInstanceState.getSerializable(MOVIES_KEY);
+        mMovies = (ArrayList<Movie>) savedInstanceState.getSerializable(MOVIES_KEY);
         mFilter = (Filter) savedInstanceState.getSerializable(FILTER_KEY);
         mOrder = (SortOrder) savedInstanceState.getSerializable(SORT_ORDER_KEY);
         mPage = savedInstanceState.getInt(PAGE_KEY);
@@ -148,6 +153,18 @@ public class MainActivity extends AppCompatActivity {
 
             Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
             spinner.setAdapter(spinnerAdapter);
+            int selection = 0;
+            switch (mFilter){
+                case Popularity:
+                    selection = 0;
+                    break;
+                case Rating:
+                    selection = 1;
+                    break;
+                case Favorites:
+                    selection = 2;
+            }
+            spinner.setSelection(selection);
 
             spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
         }
@@ -171,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         List<FilterItem> items = new ArrayList<>();
         items.add(new FilterItem(Filter.Popularity, mOrder));
         items.add(new FilterItem(Filter.Rating, mOrder));
+        items.add(new FilterItem(Filter.Favorites, mOrder));
         return items;
     }
 
@@ -184,46 +202,58 @@ public class MainActivity extends AppCompatActivity {
         getData(1);
     }
     private void getData(int page) {
-        MovieService service = MovieService.Implementation
-                .get(getString(R.string.api_key));
-        Callback<MoviesResult> cb = new Callback<MoviesResult>() {
-            @Override
-            public void success(MoviesResult moviesResult, Response response) {
-                for (MoviesResult.Movie m : moviesResult.getMovies()) {
-                    mMovies.add(m);
+        if(mFilter == Filter.Favorites){
+            RealmResults<FavoriteMovie> result = Realm.getInstance(this)
+                    .where(FavoriteMovie.class)
+                    .findAllSorted("favoritedAt",
+                            mOrder == SortOrder.Ascending ?
+                                    RealmResults.SORT_ORDER_ASCENDING : RealmResults.SORT_ORDER_DESCENDING
+                    );
+            for(FavoriteMovie m : result){
+                mMovies.add(new Movie(m));
+            }
+            mAdapter.notifyDataSetChanged();
+        }else {
+            MovieService service = MovieService.Implementation
+                    .get(getString(R.string.api_key));
+            Callback<MoviesResult> cb = new Callback<MoviesResult>() {
+                @Override
+                public void success(MoviesResult moviesResult, Response response) {
+                    for (Movie m : moviesResult.getMovies()) {
+                        mMovies.add(m);
 //                    Log.e(LOG_TAG, "Movie: " + m.title);
+                    }
+                    mAdapter.notifyDataSetChanged();
                 }
-                mAdapter.notifyDataSetChanged();
-            }
 
-            @Override
-            public void failure(RetrofitError error) {
+                @Override
+                public void failure(RetrofitError error) {
 //                Log.e(LOG_TAG, error.toString());
+                }
+            };
+            switch (mOrder) {
+                case Descending:
+                    switch (mFilter) {
+                        case Popularity:
+                            service.popular(page, cb);
+                            break;
+                        case Rating:
+                            service.highestRated(page, cb);
+                            break;
+                    }
+                    break;
+                case Ascending:
+                    switch (mFilter) {
+                        case Popularity:
+                            service.unpopular(page, cb);
+                            break;
+                        case Rating:
+                            service.lowestRated(page, cb);
+                            break;
+                    }
+                    break;
             }
-        };
-        switch (mOrder){
-            case Descending:
-                switch (mFilter){
-                    case Popularity:
-                        service.popular(page, cb);
-                        break;
-                    case Rating:
-                        service.highestRated(page, cb);
-                        break;
-                }
-                break;
-            case Ascending:
-                switch (mFilter){
-                    case Popularity:
-                        service.unpopular(page, cb);
-                        break;
-                    case Rating:
-                        service.lowestRated(page, cb);
-                        break;
-                }
-                break;
         }
-
     }
 
 
@@ -272,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
     class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
 
-        List<MoviesResult.Movie> mData;
+        List<Movie> mData;
 
         class MovieThumbnailViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
@@ -282,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
             public ImageView mImageView;
 
 
-            private MoviesResult.Movie mMovie;
+            private Movie mMovie;
 
             public MovieThumbnailViewHolder(View v) {
                 super(v);
@@ -291,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
                 v.setOnClickListener(this);
             }
 
-            public void setmMovie(MoviesResult.Movie mMovie) {
+            public void setmMovie(Movie mMovie) {
                 this.mMovie = mMovie;
                 mTextView.setText(mMovie.title);
                 //IMAGE
@@ -314,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        public MovieThumbnailAdapter(List<MoviesResult.Movie> movies){
+        public MovieThumbnailAdapter(List<Movie> movies){
             mData = movies;
         }
 
@@ -411,6 +441,8 @@ public class MainActivity extends AppCompatActivity {
                 string_id = SortOrder.Descending == order ? R.string.filter_highest_rated : R.string.filter_lowest_rated;
             else if(Filter.Popularity == filter)
                 string_id = SortOrder.Descending == order ? R.string.filter_popular : R.string.filter_unpopular;
+            else if(Filter.Favorites == filter)
+                string_id = R.string.filter_favorites;
 
             return getString(string_id);
         }
@@ -429,6 +461,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            Log.e(LOG_TAG, "Selected item " + i);
             if(!mSkipResetAndLoad) {
                 setFilter(spinnerAdapter.getItem(i).getFilter());
                 resetData();
