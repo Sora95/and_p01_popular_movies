@@ -34,4 +34,16 @@
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
     </style>
 
+    <style name="AppTheme.CardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">@dimen/margin_md</item>
+    </style>
+
+    <style name="AppTheme.CardView.Layout" parent="AppTheme.CardView">
+        <item name="android:padding">@dimen/margin_md</item>
+        <item name="android:layout_marginBottom">0dp</item>
+    </style>
+
+
 </resources>
