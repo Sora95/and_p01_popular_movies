@@ -1,12 +1,14 @@
 package net.mmhan.popularmovies.model;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by mmhan on 1/9/15.
  */
-public class PersistedMovie extends RealmObject{
+public class FavoriteMovie extends RealmObject{
     @PrimaryKey
     private int id;
 
@@ -16,10 +18,11 @@ public class PersistedMovie extends RealmObject{
     private String overview;
     private float voteAverage;
     private String releaseDate;
+    private Date favoritedAt;
 
-    public PersistedMovie(){
+    public FavoriteMovie(){
     }
-    public PersistedMovie(int id, String posterPath, String backdropPath, String title, String overview, Float voteAverage, String releaseDate) {
+    public FavoriteMovie(int id, String posterPath, String backdropPath, String title, String overview, Float voteAverage, String releaseDate) {
         this.id = id;
         this.posterPath = posterPath;
         this.backdropPath = backdropPath;
@@ -27,6 +30,7 @@ public class PersistedMovie extends RealmObject{
         this.overview = overview;
         this.voteAverage = voteAverage;
         this.releaseDate = releaseDate;
+        this.favoritedAt = new Date();
     }
 
     public int getId() {
@@ -83,5 +87,13 @@ public class PersistedMovie extends RealmObject{
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public Date getFavoritedAt() {
+        return favoritedAt;
+    }
+
+    public void setFavoritedAt(Date favoritedAt) {
+        this.favoritedAt = favoritedAt;
     }
 }

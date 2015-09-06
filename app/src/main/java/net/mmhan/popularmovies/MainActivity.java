@@ -24,7 +24,7 @@ import com.bumptech.glide.Glide;
 import net.mmhan.popularmovies.model.Movie;
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
-import net.mmhan.popularmovies.model.PersistedMovie;
+import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.ui.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
@@ -203,10 +203,13 @@ public class MainActivity extends AppCompatActivity {
     }
     private void getData(int page) {
         if(mFilter == Filter.Favorites){
-            RealmResults<PersistedMovie> result = Realm.getInstance(this)
-                    .where(PersistedMovie.class)
-                    .findAll();
-            for(PersistedMovie m : result){
+            RealmResults<FavoriteMovie> result = Realm.getInstance(this)
+                    .where(FavoriteMovie.class)
+                    .findAllSorted("favoritedAt",
+                            mOrder == SortOrder.Ascending ?
+                                    RealmResults.SORT_ORDER_ASCENDING : RealmResults.SORT_ORDER_DESCENDING
+                    );
+            for(FavoriteMovie m : result){
                 mMovies.add(new Movie(m));
             }
             mAdapter.notifyDataSetChanged();

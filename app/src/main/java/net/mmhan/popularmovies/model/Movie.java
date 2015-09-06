@@ -20,7 +20,7 @@ public class Movie implements Serializable {
     final String POSTER_SIZE = "w342";
     final String BASE_URL = "http://image.tmdb.org/t/p/";
 
-    public Movie(PersistedMovie movie) {
+    public Movie(FavoriteMovie movie) {
         this.id = movie.getId();
         this.poster_path = movie.getPosterPath();
         this.backdrop_path = movie.getBackdropPath();
@@ -34,8 +34,8 @@ public class Movie implements Serializable {
         return id;
     }
 
-    public PersistedMovie getRealmObject() {
-        return new PersistedMovie(id, poster_path, backdrop_path, title, overview, vote_average, release_date);
+    public FavoriteMovie getRealmObject() {
+        return new FavoriteMovie(id, poster_path, backdrop_path, title, overview, vote_average, release_date);
     }
 
     public String getPosterUrl() {

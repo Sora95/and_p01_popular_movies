@@ -16,8 +16,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
-import net.mmhan.popularmovies.model.PersistedMovie;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -76,7 +76,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void checkIsInFavorite() {
-        PersistedMovie result = Realm.getInstance(this).where(PersistedMovie.class)
+        FavoriteMovie result = Realm.getInstance(this).where(FavoriteMovie.class)
                 .equalTo("id", mMovie.getId())
                 .findFirst();
         mIsFavorited = result != null;
@@ -168,13 +168,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
         realmObj.beginTransaction();
         if(mIsFavorited){
             Log.e(LOG_TAG, "Removing movie #" + mMovie.getId());
-            realmObj.where(PersistedMovie.class)
+            realmObj.where(FavoriteMovie.class)
                     .equalTo("id", mMovie.getId())
                     .findFirst()
                     .removeFromRealm();
         }else {
             Log.e(LOG_TAG, "Saving movie #" + mMovie.getId());
-            realmObj.copyToRealmOrUpdate(mMovie.getRealmObject());
+            FavoriteMovie movie = mMovie.getRealmObject();
+            realmObj.copyToRealmOrUpdate(movie);
         }
 
         realmObj.commitTransaction();
