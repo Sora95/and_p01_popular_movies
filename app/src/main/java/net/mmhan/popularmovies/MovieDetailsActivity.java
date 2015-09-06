@@ -3,6 +3,7 @@ package net.mmhan.popularmovies;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -47,6 +48,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
     TextView tv_voteAvg;
     @Bind(R.id.tv_sypnosis)
     TextView tv_sypnosis;
+    @Bind(R.id.fab_watch)
+    FloatingActionButton fabWatch;
 
     boolean mIsFavorited = false;
 
@@ -67,12 +70,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        checkIsFavorited();
+        checkIsInFavorite();
 
         updateUI();
     }
 
-    private void checkIsFavorited() {
+    private void checkIsInFavorite() {
         PersistedMovie result = Realm.getInstance(this).where(PersistedMovie.class)
                 .equalTo("id", mMovie.getId())
                 .findFirst();
@@ -106,18 +109,27 @@ public class MovieDetailsActivity extends AppCompatActivity {
         updateMenuItem();
     }
 
-    private void updateMenuItem() {
-        if(mMenu == null) return;
+    private void updateMenuItem(MenuItem item) {
+        MenuItem menuItem;
+        if(item == null) {
+            if (mMenu == null) return;
+            menuItem = mMenu.findItem(R.id.action_favorite);
+        }else {
+            menuItem = item;
+        }
 
-        MenuItem item = mMenu.findItem(R.id.action_favorite);
         if (mIsFavorited) {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
-            item.setTitle(getString(R.string.action_remove_from_favorites));
+            menuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
+            menuItem.setTitle(getString(R.string.action_remove_from_favorites));
         } else {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star_outline));
-            item.setTitle(getString(R.string.action_add_to_favorites));
+            menuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star_outline));
+            menuItem.setTitle(getString(R.string.action_add_to_favorites));
         }
     }
+    private void updateMenuItem() {
+        updateMenuItem(null);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -137,7 +149,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_favorite) {
-            addFavorite(item);
+            toggleFavorite(item);
             return true;
         }else if(id == android.R.id.home){
             finish();
@@ -147,7 +159,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void addFavorite(MenuItem item) {
+    private void toggleFavorite(){
+        toggleFavorite(null);
+    }
+
+    private void toggleFavorite(MenuItem item) {
         Realm realmObj = Realm.getInstance(this);
         realmObj.beginTransaction();
         if(mIsFavorited){
@@ -165,7 +181,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Log.e(LOG_TAG, "Transaction completed with movie #" + mMovie.getId());
         mIsFavorited = !mIsFavorited;
 
-        updateMenuItem();
+        updateMenuItem(item);
     }
 
 }

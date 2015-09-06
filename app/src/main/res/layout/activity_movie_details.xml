@@ -61,5 +61,6 @@
         app:backgroundTint="@color/accent"
         android:clickable="true"
         app:borderWidth="0dp"
+        android:id="@+id/fab_watch"
         />
 </android.support.design.widget.CoordinatorLayout>
