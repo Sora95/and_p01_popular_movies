@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import net.mmhan.popularmovies.model.MoviesResult;
+import net.mmhan.popularmovies.model.Movie;
 import net.mmhan.popularmovies.model.PersistedMovie;
 
 import butterknife.Bind;
@@ -28,7 +28,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     public static final String EXTRA_MOVIE = "net.mmhan.popularmovies.extra_movie";
     private final String LOG_TAG = this.getClass().getName();
-    MoviesResult.Movie mMovie;
+    Movie mMovie;
 
     @Bind(R.id.appbar)
     AppBarLayout appbar;
@@ -62,7 +62,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        mMovie = (MoviesResult.Movie) getIntent().getSerializableExtra(EXTRA_MOVIE);
+        mMovie = (Movie) getIntent().getSerializableExtra(EXTRA_MOVIE);
 
         ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
         supportPostponeEnterTransition();

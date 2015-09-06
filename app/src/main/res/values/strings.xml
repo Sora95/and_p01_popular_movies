@@ -6,6 +6,7 @@
     <string name="filter_lowest_rated">Lowest Rated</string>
     <string name="filter_popular">Most Popular</string>
     <string name="filter_unpopular">Least Popular</string>
+    <string name="filter_favorites">Favorites</string>
     <string name="action_settings">Settings</string>
     <string name="lbl_movie_title_placeholder">Movie Title</string>
     <string name="title_activity_movie_details">MovieDetailsActivity</string>
