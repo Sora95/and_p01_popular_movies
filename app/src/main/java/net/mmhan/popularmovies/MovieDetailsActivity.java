@@ -6,6 +6,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -17,6 +18,7 @@ import net.mmhan.popularmovies.model.MoviesResult;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.Realm;
 
 
 public class MovieDetailsActivity extends AppCompatActivity {
@@ -99,15 +101,24 @@ public class MovieDetailsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_favorite) {
-//            return true;
-//        }else
-
-        if(id == android.R.id.home){
+        if (id == R.id.action_favorite) {
+            addFavorite();
+            return true;
+        }else if(id == android.R.id.home){
             finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void addFavorite() {
+        Log.e(LOG_TAG, "Saving movie #" + mMovie.getId());
+        Realm realmObj = Realm.getInstance(this);
+        realmObj.beginTransaction();
+        realmObj.copyToRealmOrUpdate(mMovie.getRealmObject());
+        realmObj.commitTransaction();
+        Log.e(LOG_TAG, "Saved movie #" + mMovie.getId());
+    }
+
 }

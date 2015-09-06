@@ -38,6 +38,10 @@ public class MoviesResult {
             this.release_date = movie.getReleaseDate();
         }
 
+        public int getId() {
+            return id;
+        }
+
         public PersistedMovie getRealmObject(){
             return new PersistedMovie(id, poster_path, backdrop_path, title, overview, vote_average, release_date);
         }
