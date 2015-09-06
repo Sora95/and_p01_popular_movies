@@ -3,6 +3,7 @@ package net.mmhan.popularmovies;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -102,7 +103,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_favorite) {
-            addFavorite();
+            addFavorite(item);
             return true;
         }else if(id == android.R.id.home){
             finish();
@@ -112,13 +113,15 @@ public class MovieDetailsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void addFavorite() {
+    private void addFavorite(MenuItem item) {
         Log.e(LOG_TAG, "Saving movie #" + mMovie.getId());
         Realm realmObj = Realm.getInstance(this);
         realmObj.beginTransaction();
         realmObj.copyToRealmOrUpdate(mMovie.getRealmObject());
         realmObj.commitTransaction();
         Log.e(LOG_TAG, "Saved movie #" + mMovie.getId());
+
+        item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
     }
 
 }
