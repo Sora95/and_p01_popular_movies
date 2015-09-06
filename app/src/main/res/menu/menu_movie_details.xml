@@ -7,7 +7,7 @@
         android:title="@string/action_favorite"
         android:icon="@drawable/ic_action_toggle_star_outline"
         android:orderInCategory="100"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 
     <!--<item android:id="@+id/action_settings" android:title="@string/action_settings"-->
         <!--android:orderInCategory="100" app:showAsAction="never" />-->
