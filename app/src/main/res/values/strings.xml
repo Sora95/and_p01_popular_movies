@@ -32,4 +32,6 @@ Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulpu
     <string name="action_remove_from_favorites">Remove from Favorites</string>
     <string name="lbl_trailers">Trailers</string>
     <string name="lbl_reviews">Reviews</string>
+    <string name="content_desc_play">Play Icon</string>
+    <string name="lbl_trailer_item">Trailer 1</string>
 </resources>

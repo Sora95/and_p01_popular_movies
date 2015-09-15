@@ -1,5 +1,7 @@
 package net.mmhan.popularmovies.model;
 
+import android.net.Uri;
+
 import java.util.List;
 
 /**
@@ -15,6 +17,7 @@ public class TrailersResult {
         private String site;
         private int size;
         private String type;
+        private String name;
 
         public String getId() {
             return id;
@@ -34,6 +37,18 @@ public class TrailersResult {
 
         public String getType() {
             return type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getYoutubeUrl(){
+            return "https://www.youtube.com/watch?v=" + key;
+        }
+
+        public Uri getYoutubeUri(){
+            return Uri.parse(getYoutubeUrl());
         }
     }
 }
