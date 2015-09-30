@@ -1,15 +1,15 @@
 package net.mmhan.popularmovies;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,10 +21,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
 import net.mmhan.popularmovies.model.MovieService;
 import net.mmhan.popularmovies.model.MoviesResult;
-import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.ui.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainFragment extends Fragment {
 
     private static final int GRIDVIEW_COLUMN_COUNT = 3;
     private static final String MOVIES_KEY = "MOVIES";
@@ -92,33 +92,32 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView mRecyclerView;
     RecyclerView.Adapter mAdapter;
     GridLayoutManager mLayoutManager;
-    private Toolbar mActionBarToolbar;
+    @Bind(R.id.toolbar_actionbar)
+    Toolbar mActionBarToolbar;
     private boolean mToolbarSetupCompleted = false;
     private boolean mSkipResetAndLoad = false;
 
     ArrayList<Movie> mMovies;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.activity_main, container, false);
+        ButterKnife.bind(this, v);
         if(savedInstanceState != null){
             loadData(savedInstanceState);
         } else {
             mMovies = new ArrayList<>();
         }
 
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
-
         setUpToolbarSpinner();
-
         setUpRecyclerView();
 
+        return v;
     }
 
-
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         saveData(outState);
     }
@@ -141,8 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void setUpToolbarSpinner() {
-        Toolbar toolbar = getActionBarToolbar();
-        if (toolbar == null) {
+        if (mActionBarToolbar == null) {
 //            Log.e(LOG_TAG, "Not configuring action bar");
             return;
         }
@@ -151,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
             final ToolbarSpinnerAdapter spinnerAdapter = new ToolbarSpinnerAdapter();
             spinnerAdapter.addItems(getToolbarItems());
 
-            Spinner spinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+            Spinner spinner = (Spinner) mActionBarToolbar.findViewById(R.id.spinner_nav);
             spinner.setAdapter(spinnerAdapter);
             int selection = 0;
             switch (mFilter){
@@ -168,20 +166,6 @@ public class MainActivity extends AppCompatActivity {
 
             spinner.setOnItemSelectedListener(new SpinnerItemSelectedListener(spinnerAdapter));
         }
-    }
-
-    private Toolbar getActionBarToolbar() {
-        //referenced from https://github.com/google/iosched/blob/master/android/src/main/java/com/google/samples/apps/iosched/ui/BaseActivity.java
-        if (mActionBarToolbar == null) {
-            mActionBarToolbar = (Toolbar) findViewById(R.id.toolbar_actionbar);
-            if (mActionBarToolbar != null) {
-                setSupportActionBar(mActionBarToolbar);
-            }
-        }
-        if(getSupportActionBar() != null){
-           getSupportActionBar().setDisplayShowTitleEnabled(false);
-        }
-        return mActionBarToolbar;
     }
 
     private List<FilterItem> getToolbarItems(){
@@ -203,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void getData(int page) {
         if(mFilter == Filter.Favorites){
-            RealmResults<FavoriteMovie> result = Realm.getInstance(this)
+            RealmResults<FavoriteMovie> result = Realm.getInstance(getActivity())
                     .where(FavoriteMovie.class)
                     .findAllSorted("favoritedAt",
                             mOrder == SortOrder.Ascending ?
@@ -259,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpRecyclerView() {
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new GridLayoutManager(this, GRIDVIEW_COLUMN_COUNT);
+        mLayoutManager = new GridLayoutManager(getActivity(), GRIDVIEW_COLUMN_COUNT);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MovieThumbnailAdapter(mMovies);
         mRecyclerView.setAdapter(mAdapter);
@@ -267,19 +251,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLoadMore(int current_page) {
                 Log.e(LOG_TAG, "onLoadMore Called");
-                MainActivity.this.getData(current_page);
+                MainFragment.this.getData(current_page);
             }
         };
         mRecyclerView.addOnScrollListener(mEndlessRecyclerOnScrollListener);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//
+//        return true;
+//    }
 
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -291,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_sort_order) {
             swapOrder();
-            item.setIcon(ContextCompat.getDrawable(this, getSortOrderIcon()));
+            item.setIcon(ContextCompat.getDrawable(getActivity(), getSortOrderIcon()));
             mToolbarSetupCompleted = false;
             setUpToolbarSpinner();
             return true;
@@ -300,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class MovieThumbnailAdapter extends RecyclerView.Adapter<MainActivity.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
+    class MovieThumbnailAdapter extends RecyclerView.Adapter<MainFragment.MovieThumbnailAdapter.MovieThumbnailViewHolder>{
 
         List<Movie> mData;
 
@@ -336,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-                Intent it = new Intent(MainActivity.this, MovieDetailsActivity.class);
+                Intent it = new Intent(getActivity(), MovieDetailsActivity.class);
                 it.putExtra(MovieDetailsActivity.EXTRA_MOVIE, mMovie);
                 startActivity(it);
             }
@@ -401,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
             if (view == null || !view.getTag().toString().equals("NON_DROPDOWN")) {
-                view = getLayoutInflater().inflate(R.layout.toolbar_spinner_item_actionbar, viewGroup, false);
+                view =  getActivity().getLayoutInflater().inflate(R.layout.toolbar_spinner_item_actionbar, viewGroup, false);
                 view.setTag("NON_DROPDOWN");
             }
             TextView textView = (TextView) view.findViewById(android.R.id.text1);
@@ -412,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getDropDownView(int position, View convertView, ViewGroup parent) {
             if (convertView == null || !convertView.getTag().toString().equals("DROPDOWN")) {
-                convertView = getLayoutInflater().inflate(R.layout.toolbar_spinner_item_dropdown, parent, false);
+                convertView = getActivity().getLayoutInflater().inflate(R.layout.toolbar_spinner_item_dropdown, parent, false);
                 convertView.setTag("DROPDOWN");
             }
 

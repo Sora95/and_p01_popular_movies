@@ -31,7 +31,10 @@ public class HomeActivity extends AppCompatActivity{
             isPhone = false;
         }else{
             if(savedInstanceState == null){
-
+                MainFragment mainFragment = new MainFragment();
+                getFragmentManager().beginTransaction()
+                        .add(R.id.phone_container, mainFragment)
+                        .commit();
             }
         }
     }
