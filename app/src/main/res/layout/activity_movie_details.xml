@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="net.mmhan.popularmovies.MovieDetailsActivity"
+    tools:context="net.mmhan.popularmovies.MovieDetailsFragment"
     >
     <!-- referenced from https://github.com/chrisbanes/cheesesquare -->
 

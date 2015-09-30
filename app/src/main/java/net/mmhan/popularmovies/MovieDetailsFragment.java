@@ -1,16 +1,16 @@
 package net.mmhan.popularmovies;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.NestedScrollView;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -43,7 +43,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsFragment extends Fragment {
 
     public static final String EXTRA_MOVIE = "net.mmhan.popularmovies.extra_movie";
     private final String LOG_TAG = this.getClass().getName();
@@ -87,28 +87,44 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private List<TrailersResult.Trailer> mTrailers;
     private List<ReviewsResult.Review> mReviews;
 
+    public static MovieDetailsFragment newInstance(Movie movie){
+        MovieDetailsFragment f = new MovieDetailsFragment();
+        Bundle b = new Bundle();
+        b.putSerializable(EXTRA_MOVIE, movie);
+        f.setArguments(b);
+        return f;
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_movie_details);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.activity_movie_details, container, false);
+        ButterKnife.bind(this, v);
 
-        ButterKnife.bind(this);
 
-        mMovie = (Movie) getIntent().getSerializableExtra(EXTRA_MOVIE);
+//        ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
+//        supportPostponeEnterTransition();
 
-        ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
-        supportPostponeEnterTransition();
+//        getActivity().setSupportActionBar(toolbar);
+//        getActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(mMovie != null) {
+            notifyDataRecieved();
+        }
+        return v;
+    }
 
+    private void notifyDataRecieved() {
         checkIsInFavorite();
-
         updateUI();
-
         loadTrailers();
-
         loadReviews();
+    }
+
+    public void setMovie(Movie movie) {
+        mMovie = movie;
+        if(getActivity() != null)
+            notifyDataRecieved();
     }
 
     private void loadReviews() {
@@ -196,7 +212,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
 
     private void checkIsInFavorite() {
-        FavoriteMovie result = Realm.getInstance(this).where(FavoriteMovie.class)
+
+        FavoriteMovie result = Realm.getInstance(getActivity()).where(FavoriteMovie.class)
                 .equalTo("id", mMovie.getId())
                 .findFirst();
         mIsFavorited = result != null;
@@ -228,13 +245,13 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         updateMenuItem();
 
-        RecyclerView.LayoutManager trailersLayout = new LinearLayoutManager(this);
+        RecyclerView.LayoutManager trailersLayout = new LinearLayoutManager(getActivity());
         rviewTrailers.setLayoutManager(trailersLayout);
         rviewAdapterTrailers = new TrailersAdapter();
         rviewTrailers.setAdapter(rviewAdapterTrailers);
 
 
-        RecyclerView.LayoutManager reviewsLayout = new LinearLayoutManager(this);
+        RecyclerView.LayoutManager reviewsLayout = new LinearLayoutManager(getActivity());
         rviewReviews.setLayoutManager(reviewsLayout);
         rviewAdapterReviews = new ReviewsAdapter();
         rviewReviews.setAdapter(rviewAdapterReviews);
@@ -250,10 +267,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
         }
 
         if (mIsFavorited) {
-            menuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star));
+            menuItem.setIcon(ContextCompat.getDrawable(getActivity(), R.drawable.ic_action_toggle_star));
             menuItem.setTitle(getString(R.string.action_remove_from_favorites));
         } else {
-            menuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_action_toggle_star_outline));
+            menuItem.setIcon(ContextCompat.getDrawable(getActivity(), R.drawable.ic_action_toggle_star_outline));
             menuItem.setTitle(getString(R.string.action_add_to_favorites));
         }
     }
@@ -262,14 +279,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_movie_details, menu);
-        mMenu = menu;
-        updateMenuItem();
-        return true;
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.menu_movie_details, menu);
+//        mMenu = menu;
+//        updateMenuItem();
+//        return true;
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -283,7 +300,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
             toggleFavorite(item);
             return true;
         }else if(id == android.R.id.home){
-            finish();
+//            finish();
             return true;
         }
 
@@ -291,7 +308,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void toggleFavorite(MenuItem item) {
-        Realm realmObj = Realm.getInstance(this);
+        Realm realmObj = Realm.getInstance(getActivity());
         realmObj.beginTransaction();
         if(mIsFavorited){
             Log.e(LOG_TAG, "Removing movie #" + mMovie.getId());
