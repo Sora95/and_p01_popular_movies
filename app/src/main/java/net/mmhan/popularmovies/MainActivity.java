@@ -317,7 +317,6 @@ public class MainActivity extends AppCompatActivity {
             public MovieThumbnailViewHolder(View v) {
                 super(v);
                 ButterKnife.bind(this, v);
-                mTextView.getText();
                 v.setOnClickListener(this);
             }
 

@@ -4,4 +4,6 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="activity_details_backdrop_height">300dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="margin_md">10dp</dimen>
+    <dimen name="margin_lg">15dp</dimen>
 </resources>
