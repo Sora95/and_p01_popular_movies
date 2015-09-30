@@ -150,11 +150,15 @@
                 android:id="@+id/lbl_reviews"
                 android:layout_marginBottom="@dimen/margin_lg" />
 
-            <ListView
+
+            <android.support.v7.widget.RecyclerView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="150dp"
+                android:id="@+id/rview_reviews"
                 android:layout_below="@id/lbl_reviews"
-                android:id="@+id/lv_reviews" />
+                />
+
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 

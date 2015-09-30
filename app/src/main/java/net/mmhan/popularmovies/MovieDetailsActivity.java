@@ -1,6 +1,7 @@
 package net.mmhan.popularmovies;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -20,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -29,6 +29,7 @@ import com.bumptech.glide.Glide;
 import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
 import net.mmhan.popularmovies.model.MovieService;
+import net.mmhan.popularmovies.model.ReviewsResult;
 import net.mmhan.popularmovies.model.TrailersResult;
 
 import java.util.ArrayList;
@@ -75,14 +76,16 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @Bind(R.id.nsv)
     NestedScrollView nestedScrollView;
 
-    @Bind(R.id.lv_reviews)
-    ListView lvReviews;
+    @Bind(R.id.rview_reviews)
+    RecyclerView rviewReviews;
+    ReviewsAdapter rviewAdapterReviews;
 
     boolean mIsFavorited = false;
 
     Menu mMenu;
 
     private List<TrailersResult.Trailer> mTrailers;
+    private List<ReviewsResult.Review> mReviews;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,27 +108,91 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         loadTrailers();
 
-//        MovieService.Implementation
-//                .get(getString(R.string.api_key))
-//                .reviews(mMovie.getId(), new Callback<ReviewsResult>() {
-//                    @Override
-//                    public void success(ReviewsResult reviewsResult, Response response) {
-//                        for(ReviewsResult.Review r : reviewsResult.results){
-//                            Log.e(LOG_TAG, "Reviews received");
-//                            Log.e(LOG_TAG, r.getAuthor() + " : " + r.getUrl());
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void failure(RetrofitError error) {
-//                        Snackbar
-//                            .make(nestedScrollView, "There was an error in loading Reviews", Snackbar.LENGTH_SHORT)
-//                            .show();
-//                        Log.e(LOG_TAG, error.toString());
-//                    }
-//                });
+        loadReviews();
     }
 
+    private void loadReviews() {
+        mReviews = new ArrayList<>();
+
+        MovieService.Implementation
+                .get(getString(R.string.api_key))
+                .reviews(mMovie.getId(), new Callback<ReviewsResult>() {
+                    @Override
+                    public void success(ReviewsResult reviewsResult, Response response) {
+                        mReviews.addAll(reviewsResult.results);
+                        rviewAdapterReviews.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Snackbar
+                            .make(nestedScrollView, "There was an error in loading Reviews", Snackbar.LENGTH_SHORT)
+                            .show();
+                        Log.e(LOG_TAG, error.toString());
+                    }
+                });
+    }
+
+    class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsViewHolder>{
+
+        class ReviewsViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+            @Bind(R.id.rlayout_review_item)
+            RelativeLayout mRelativeLayout;
+            @Bind(R.id.lbl_reviewer)
+            TextView tvReviewerLbl;
+            @Bind(R.id.tv_review_content)
+            TextView tvReviewContent;
+
+            private ReviewsResult.Review mReview;
+
+
+            public ReviewsViewHolder(View itemView) {
+                super(itemView);
+
+                setupView(itemView);
+            }
+
+            public void setReview(ReviewsResult.Review mReview) {
+                this.mReview = mReview;
+
+                tvReviewerLbl.setText(mReview.getAuthor());
+                tvReviewContent.setText(mReview.getContent());
+            }
+
+            private void setupView(View itemView) {
+                ButterKnife.bind(this, itemView);
+                itemView.setOnClickListener(this);
+            }
+
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setData(Uri.parse(mReview.getUrl()));
+                startActivity(it);
+            }
+        }
+
+        public ReviewsAdapter() {
+        }
+
+        @Override
+        public ReviewsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.review_item, parent, false);
+            return new ReviewsViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(ReviewsViewHolder holder, int position) {
+            holder.setReview(mReviews.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return mReviews.size();
+        }
+    }
 
 
     private void checkIsInFavorite() {
@@ -165,6 +232,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
         rviewTrailers.setLayoutManager(trailersLayout);
         rviewAdapterTrailers = new TrailersAdapter();
         rviewTrailers.setAdapter(rviewAdapterTrailers);
+
+
+        RecyclerView.LayoutManager reviewsLayout = new LinearLayoutManager(this);
+        rviewReviews.setLayoutManager(reviewsLayout);
+        rviewAdapterReviews = new ReviewsAdapter();
+        rviewReviews.setAdapter(rviewAdapterReviews);
     }
 
     private void updateMenuItem(MenuItem item) {
@@ -306,7 +379,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     @Override
                     public void success(TrailersResult trailersResult, Response response) {
                         for(TrailersResult.Trailer t : trailersResult.results){
-                            if(t.getType().equals("Trailer")){
+                            if(t.getType().equals("Trailer") && t.getSite().equals("YouTube")){
                                 mTrailers.add(t);
                             }
                         }
