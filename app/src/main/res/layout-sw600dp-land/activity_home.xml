@@ -10,13 +10,14 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:id="@+id/main_fragment"
-        ></fragment>
+        />
     <fragment
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
         android:id="@+id/detail_fragment"
-        ></fragment>
+        android:name="net.mmhan.popularmovies.MovieDetailsFragment"
+        />
 
 
 </LinearLayout>

@@ -1,7 +1,6 @@
 package net.mmhan.popularmovies;
 
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -321,9 +320,10 @@ public class MainFragment extends Fragment {
 
             @Override
             public void onClick(View view) {
-                Intent it = new Intent(getActivity(), MovieDetailsActivity.class);
-                it.putExtra(MovieDetailsActivity.EXTRA_MOVIE, mMovie);
-                startActivity(it);
+                MovieDetailsFragment movieDetailsFragment = MovieDetailsFragment.newInstance(mMovie);
+                getFragmentManager().beginTransaction()
+                        .add(R.id.phone_container, movieDetailsFragment)
+                        .commit();
             }
         }
 
