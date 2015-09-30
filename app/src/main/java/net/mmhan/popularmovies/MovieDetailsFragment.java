@@ -87,7 +87,6 @@ public class MovieDetailsFragment extends Fragment {
     private List<TrailersResult.Trailer> mTrailers;
     private List<ReviewsResult.Review> mReviews;
 
-
     public static MovieDetailsFragment newInstance(Movie movie){
         MovieDetailsFragment f = new MovieDetailsFragment();
         Bundle b = new Bundle();
@@ -102,7 +101,6 @@ public class MovieDetailsFragment extends Fragment {
         View v = inflater.inflate(R.layout.activity_movie_details, container, false);
         ButterKnife.bind(this, v);
 
-        mMovie = (Movie) getArguments().getSerializable(EXTRA_MOVIE);
 
 //        ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
 //        supportPostponeEnterTransition();
@@ -110,15 +108,23 @@ public class MovieDetailsFragment extends Fragment {
 //        getActivity().setSupportActionBar(toolbar);
 //        getActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        checkIsInFavorite();
-
-        updateUI();
-
-        loadTrailers();
-
-        loadReviews();
-
+        if(mMovie != null) {
+            notifyDataRecieved();
+        }
         return v;
+    }
+
+    private void notifyDataRecieved() {
+        checkIsInFavorite();
+        updateUI();
+        loadTrailers();
+        loadReviews();
+    }
+
+    public void setMovie(Movie movie) {
+        mMovie = movie;
+        if(getActivity() != null)
+            notifyDataRecieved();
     }
 
     private void loadReviews() {
@@ -206,6 +212,7 @@ public class MovieDetailsFragment extends Fragment {
 
 
     private void checkIsInFavorite() {
+
         FavoriteMovie result = Realm.getInstance(getActivity()).where(FavoriteMovie.class)
                 .equalTo("id", mMovie.getId())
                 .findFirst();

@@ -97,7 +97,14 @@ public class MainFragment extends Fragment {
     private boolean mSkipResetAndLoad = false;
 
     ArrayList<Movie> mMovies;
-
+    boolean isPhone = true;
+    public static MainFragment newInstance(boolean isPhone){
+        MainFragment f = new MainFragment();
+        Bundle b = new Bundle();
+        b.putBoolean("is_phone", isPhone);
+        f.setArguments(b);
+        return f;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -108,7 +115,11 @@ public class MainFragment extends Fragment {
         } else {
             mMovies = new ArrayList<>();
         }
-
+        if(getArguments() == null){
+            isPhone = false;
+        }else{
+             isPhone = getArguments().getBoolean("is_phone");
+        }
         setUpToolbarSpinner();
         setUpRecyclerView();
 
@@ -320,10 +331,17 @@ public class MainFragment extends Fragment {
 
             @Override
             public void onClick(View view) {
-                MovieDetailsFragment movieDetailsFragment = MovieDetailsFragment.newInstance(mMovie);
-                getFragmentManager().beginTransaction()
-                        .add(R.id.phone_container, movieDetailsFragment)
-                        .commit();
+                if(isPhone) {
+                    MovieDetailsFragment movieDetailsFragment = MovieDetailsFragment.newInstance(mMovie);
+                    movieDetailsFragment.setMovie(mMovie);
+                    getFragmentManager().beginTransaction()
+                            .add(R.id.phone_container, movieDetailsFragment)
+                            .commit();
+                }else{
+                    ((MovieDetailsFragment)
+                            getFragmentManager().findFragmentById(R.id.detail_fragment))
+                            .setMovie(mMovie);
+                }
             }
         }
 
