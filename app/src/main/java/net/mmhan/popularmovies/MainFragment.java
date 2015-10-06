@@ -97,14 +97,7 @@ public class MainFragment extends Fragment {
     private boolean mSkipResetAndLoad = false;
 
     ArrayList<Movie> mMovies;
-    boolean isPhone = true;
-    public static MainFragment newInstance(boolean isPhone){
-        MainFragment f = new MainFragment();
-        Bundle b = new Bundle();
-        b.putBoolean("is_phone", isPhone);
-        f.setArguments(b);
-        return f;
-    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -115,11 +108,7 @@ public class MainFragment extends Fragment {
         } else {
             mMovies = new ArrayList<>();
         }
-        if(getArguments() == null){
-            isPhone = false;
-        }else{
-             isPhone = getArguments().getBoolean("is_phone");
-        }
+
         setUpToolbarSpinner();
         setUpRecyclerView();
 
@@ -331,11 +320,13 @@ public class MainFragment extends Fragment {
 
             @Override
             public void onClick(View view) {
-                if(isPhone) {
-                    MovieDetailsFragment movieDetailsFragment = MovieDetailsFragment.newInstance(mMovie);
+                if(((HomeActivity) getActivity()).isSinglePane()) {
+
+                    MovieDetailsFragment movieDetailsFragment = new MovieDetailsFragment();
                     movieDetailsFragment.setMovie(mMovie);
                     getFragmentManager().beginTransaction()
-                            .add(R.id.phone_container, movieDetailsFragment)
+                            .replace(R.id.phone_container, movieDetailsFragment)
+                            .addToBackStack(movieDetailsFragment.getClass().getName())
                             .commit();
                 }else{
                     ((MovieDetailsFragment)

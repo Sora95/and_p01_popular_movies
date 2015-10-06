@@ -12,7 +12,8 @@ public class HomeActivity extends AppCompatActivity{
 
     FrameLayout frameLayout;
 
-    boolean isPhone = true;
+
+    private boolean isSinglePane = true;
 
 
     @Override
@@ -24,14 +25,28 @@ public class HomeActivity extends AppCompatActivity{
 
         if(frameLayout == null){
             //this is tablet
-            isPhone = false;
+            isSinglePane = false;
         }else{
             if(savedInstanceState == null){
-                MainFragment mainFragment = MainFragment.newInstance(isPhone);
+                MainFragment mainFragment = new MainFragment();
                 getFragmentManager().beginTransaction()
                         .add(R.id.phone_container, mainFragment)
+                        .addToBackStack(mainFragment.getClass().getName())
                         .commit();
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(getFragmentManager().getBackStackEntryCount() > 0){
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public boolean isSinglePane() {
+        return isSinglePane;
     }
 }

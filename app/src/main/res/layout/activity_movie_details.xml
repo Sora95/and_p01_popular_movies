@@ -6,6 +6,7 @@
     android:fitsSystemWindows="true"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="net.mmhan.popularmovies.MovieDetailsFragment"
+    android:background="@color/background"
     >
     <!-- referenced from https://github.com/chrisbanes/cheesesquare -->
 

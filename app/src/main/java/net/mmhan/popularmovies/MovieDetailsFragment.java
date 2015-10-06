@@ -87,20 +87,18 @@ public class MovieDetailsFragment extends Fragment {
     private List<TrailersResult.Trailer> mTrailers;
     private List<ReviewsResult.Review> mReviews;
 
-    public static MovieDetailsFragment newInstance(Movie movie){
-        MovieDetailsFragment f = new MovieDetailsFragment();
-        Bundle b = new Bundle();
-        b.putSerializable(EXTRA_MOVIE, movie);
-        f.setArguments(b);
-        return f;
-    }
+    View.OnClickListener listener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            getFragmentManager().popBackStack();
+        }
+    };
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.activity_movie_details, container, false);
         ButterKnife.bind(this, v);
-
 
 //        ViewCompat.setTransitionName(appbar, EXTRA_MOVIE);
 //        supportPostponeEnterTransition();
@@ -220,6 +218,14 @@ public class MovieDetailsFragment extends Fragment {
     }
 
     private void updateUI() {
+
+
+
+        if(((HomeActivity) getActivity()).isSinglePane()) {
+            toolbar.setNavigationIcon(R.drawable.ic_action_arrow_back);
+            toolbar.setNavigationOnClickListener(listener);
+        }
+
         collapsingToolbarLayout.setTitle(mMovie.title);
         collapsingToolbarLayout.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
 
