@@ -27,13 +27,11 @@ public class HomeActivity extends AppCompatActivity{
             //this is tablet
             isSinglePane = false;
         }else{
-            if(savedInstanceState == null){
-                MainFragment mainFragment = new MainFragment();
-                getFragmentManager().beginTransaction()
-                        .add(R.id.phone_container, mainFragment)
-                        .addToBackStack(mainFragment.getClass().getName())
-                        .commit();
-            }
+            MainFragment mainFragment = new MainFragment();
+            getFragmentManager().beginTransaction()
+                    .add(R.id.phone_container, mainFragment)
+                    .addToBackStack(mainFragment.getClass().getName())
+                    .commit();
         }
     }
 

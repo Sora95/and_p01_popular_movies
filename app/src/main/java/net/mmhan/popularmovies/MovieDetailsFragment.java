@@ -117,6 +117,7 @@ public class MovieDetailsFragment extends Fragment {
         updateUI();
         loadTrailers();
         loadReviews();
+        nestedScrollView.scrollTo(0,0);
     }
 
     public void setMovie(Movie movie) {
@@ -218,8 +219,6 @@ public class MovieDetailsFragment extends Fragment {
     }
 
     private void updateUI() {
-
-
 
         if(((HomeActivity) getActivity()).isSinglePane()) {
             toolbar.setNavigationIcon(R.drawable.ic_action_arrow_back);

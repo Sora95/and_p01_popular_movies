@@ -135,6 +135,8 @@ public class MainFragment extends Fragment {
         mOrder = (SortOrder) savedInstanceState.getSerializable(SORT_ORDER_KEY);
         mPage = savedInstanceState.getInt(PAGE_KEY);
         mSkipResetAndLoad = true;
+        if(requiresDefaultMovie(1))
+            setMovieToDetailPane(mMovies.get(0));
     }
 
 
@@ -184,7 +186,8 @@ public class MainFragment extends Fragment {
     private void getData() {
         getData(1);
     }
-    private void getData(int page) {
+    private void getData(final int page) {
+
         if(mFilter == Filter.Favorites){
             RealmResults<FavoriteMovie> result = Realm.getInstance(getActivity())
                     .where(FavoriteMovie.class)
@@ -205,6 +208,9 @@ public class MainFragment extends Fragment {
                     for (Movie m : moviesResult.getMovies()) {
                         mMovies.add(m);
 //                    Log.e(LOG_TAG, "Movie: " + m.title);
+                    }
+                    if(requiresDefaultMovie(page)) {
+                        setMovieToDetailPane(mMovies.get(0));
                     }
                     mAdapter.notifyDataSetChanged();
                 }
@@ -237,6 +243,13 @@ public class MainFragment extends Fragment {
                     break;
             }
         }
+
+    }
+
+    private boolean requiresDefaultMovie(int page) {
+        return page == 1 &&
+                !((HomeActivity) getActivity()).isSinglePane() &&
+                mMovies.size() > 0;
     }
 
 
@@ -329,11 +342,11 @@ public class MainFragment extends Fragment {
                             .addToBackStack(movieDetailsFragment.getClass().getName())
                             .commit();
                 }else{
-                    ((MovieDetailsFragment)
-                            getFragmentManager().findFragmentById(R.id.detail_fragment))
-                            .setMovie(mMovie);
+                    setMovieToDetailPane(mMovie);
                 }
             }
+
+
         }
 
 
@@ -466,5 +479,11 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onNothingSelected(AdapterView<?> adapterView) {}
+    }
+
+    private void setMovieToDetailPane(Movie mMovie) {
+        ((MovieDetailsFragment)
+                getFragmentManager().findFragmentById(R.id.detail_fragment))
+                .setMovie(mMovie);
     }
 }
