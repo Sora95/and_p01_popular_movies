@@ -17,7 +17,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,6 +24,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
@@ -67,8 +67,8 @@ public class MovieDetailsFragment extends Fragment {
     TextView tv_voteAvg;
     @Bind(R.id.tv_sypnosis)
     TextView tv_sypnosis;
-    @Bind(R.id.fab_watch)
-    FloatingActionButton fabWatch;
+    @Bind(R.id.fab_favorite)
+    FloatingActionButton fabFavorite;
     @Bind(R.id.rview_trailers)
     RecyclerView rviewTrailers;
     TrailersAdapter rviewAdapterTrailers;
@@ -117,7 +117,7 @@ public class MovieDetailsFragment extends Fragment {
         updateUI();
         loadTrailers();
         loadReviews();
-        nestedScrollView.scrollTo(0,0);
+        nestedScrollView.scrollTo(0, 0);
     }
 
     public void setMovie(Movie movie) {
@@ -216,6 +216,8 @@ public class MovieDetailsFragment extends Fragment {
                 .equalTo("id", mMovie.getId())
                 .findFirst();
         mIsFavorited = result != null;
+
+        updateFabIcon();
     }
 
     private void updateUI() {
@@ -230,6 +232,7 @@ public class MovieDetailsFragment extends Fragment {
 
         Glide.with(iv_backDrop.getContext())
                 .load(mMovie.getBackdropUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop()
                 // TODO: Find a way to add those back in without ruining how the posters look
 //              .error(R.drawable.cloud_err)
@@ -239,6 +242,7 @@ public class MovieDetailsFragment extends Fragment {
 
         Glide.with(iv_poster.getContext())
                 .load(mMovie.getPosterUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop()
                 .crossFade()
                 .into(iv_poster);
@@ -247,8 +251,6 @@ public class MovieDetailsFragment extends Fragment {
         tv_releaseDate.setText(mMovie.release_date);
         tv_voteAvg.setText(mMovie.vote_average.toString());
         tv_sypnosis.setText(mMovie.overview);
-
-        updateMenuItem();
 
         RecyclerView.LayoutManager trailersLayout = new LinearLayoutManager(getActivity());
         rviewTrailers.setLayoutManager(trailersLayout);
@@ -260,27 +262,24 @@ public class MovieDetailsFragment extends Fragment {
         rviewReviews.setLayoutManager(reviewsLayout);
         rviewAdapterReviews = new ReviewsAdapter();
         rviewReviews.setAdapter(rviewAdapterReviews);
+
+        fabFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleFavorite();
+                updateFabIcon();
+            }
+        });
     }
 
-    private void updateMenuItem(MenuItem item) {
-        MenuItem menuItem;
-        if(item == null) {
-            if (mMenu == null) return;
-            menuItem = mMenu.findItem(R.id.action_favorite);
-        }else {
-            menuItem = item;
+    private void updateFabIcon() {
+        int id;
+        if(mIsFavorited){
+            id = R.drawable.ic_action_toggle_star;
+        }else{
+            id = R.drawable.ic_action_toggle_star_outline;
         }
-
-        if (mIsFavorited) {
-            menuItem.setIcon(ContextCompat.getDrawable(getActivity(), R.drawable.ic_action_toggle_star));
-            menuItem.setTitle(getString(R.string.action_remove_from_favorites));
-        } else {
-            menuItem.setIcon(ContextCompat.getDrawable(getActivity(), R.drawable.ic_action_toggle_star_outline));
-            menuItem.setTitle(getString(R.string.action_add_to_favorites));
-        }
-    }
-    private void updateMenuItem() {
-        updateMenuItem(null);
+        fabFavorite.setImageDrawable(ContextCompat.getDrawable(getActivity(), id));
     }
 
 
@@ -293,26 +292,7 @@ public class MovieDetailsFragment extends Fragment {
 //        return true;
 //    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_favorite) {
-            toggleFavorite(item);
-            return true;
-        }else if(id == android.R.id.home){
-//            finish();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void toggleFavorite(MenuItem item) {
+    private void toggleFavorite() {
         Realm realmObj = Realm.getInstance(getActivity());
         realmObj.beginTransaction();
         if(mIsFavorited){
@@ -331,7 +311,6 @@ public class MovieDetailsFragment extends Fragment {
         Log.e(LOG_TAG, "Transaction completed with movie #" + mMovie.getId());
         mIsFavorited = !mIsFavorited;
 
-        updateMenuItem(item);
     }
 
     class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.TrailersViewHolder>{

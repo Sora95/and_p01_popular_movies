@@ -19,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import net.mmhan.popularmovies.model.FavoriteMovie;
 import net.mmhan.popularmovies.model.Movie;
@@ -323,6 +324,7 @@ public class MainFragment extends Fragment {
                 //IMAGE
                 Glide.with(mImageView.getContext())
                         .load(mMovie.getPosterUrl())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .centerCrop()
                                 // TODO: Find a way to add those back in without ruining how the posters look
 //                    .error(R.drawable.cloud_err)
