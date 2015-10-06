@@ -6,6 +6,7 @@
     <string name="filter_lowest_rated">Lowest Rated</string>
     <string name="filter_popular">Most Popular</string>
     <string name="filter_unpopular">Least Popular</string>
+    <string name="filter_favorites">Favorites</string>
     <string name="action_settings">Settings</string>
     <string name="lbl_movie_title_placeholder">Movie Title</string>
     <string name="title_activity_movie_details">MovieDetailsActivity</string>
@@ -26,5 +27,12 @@ Morbi in sem quis dui placerat ornare. Pellentesque odio nisi, euismod in, phare
 
 Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus.
     </string>
-    <string name="reverse_sort">Reverse Sort</string>
+    <string name="reverse_sort">Swap Order</string>
+    <string name="action_add_to_favorites">Add to Favorites</string>
+    <string name="action_remove_from_favorites">Remove from Favorites</string>
+    <string name="lbl_trailers">Trailers</string>
+    <string name="lbl_reviews">Reviews</string>
+    <string name="content_desc_play">Play Icon</string>
+    <string name="lbl_trailer_item">Trailer 1</string>
+    <string name="title_activity_fragment_holder">FragmentHolderActivity</string>
 </resources>
